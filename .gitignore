@@ -1,2 +1,7 @@
 #Ignore env folder
 .venv
+#Airflow metadata
+airflow/airflow.db
+airflow/airflow.cfg
+airflow/logs/
+airflow/simple_auth_manager_passwords.json.generated
