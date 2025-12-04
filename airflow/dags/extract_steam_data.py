@@ -21,19 +21,20 @@ STEAMID64 = "76561198923974658"
 APPID = 730                          # CS2 / CS:GO
 CONTEXTID = 2  
 
-def fetch_inventory_page(steamid64: str, appid: int, contextid: int, start: str = None):
+
+def fetch_inventory_steam(steamid64: str, appid: int, contextid: int, start: str = None):
     url = f"https://steamcommunity.com/inventory/{steamid64}/{appid}/{contextid}"
     resp = requests.get(url, headers=HEADERS, timeout=15)
     resp.raise_for_status()
     return resp.json()
 
-def inventory_items_for_user(steamid64: str, appid: int, contextid: int, delay_between_requests: float = 0.5):
+def inventory_items(steamid64: str, appid: int, contextid: int, delay_between_requests: float = 0.5):
     items = []
     seen_assetids = set()
     start = None
 
     while True:
-        data = fetch_inventory_page(steamid64, appid, contextid, start)
+        data = fetch_inventory_steam(steamid64, appid, contextid, start)
         if not data or "assets" not in data or "descriptions" not in data:
             return items, data
 
@@ -121,7 +122,7 @@ with DAG(
     
     @task
     def extract_inventory():
-        items, raw = inventory_items_for_user(STEAMID64, APPID, CONTEXTID)
+        items, raw = inventory_items(STEAMID64, APPID, CONTEXTID)
         summaries = []
         seen_names = set()
 
@@ -142,7 +143,7 @@ with DAG(
         return summaries
     
     @task
-    def fetch_market_prices(summaries: list):
+    def fetch_steam_prices(summaries: list):
         if not summaries:
             print("No items to fetch prices for.")
             return {}
@@ -190,6 +191,6 @@ with DAG(
 
     # Task dependencies (TaskFlow syntax)
     summaries = extract_inventory()
-    prices = fetch_market_prices(summaries)
+    prices = fetch_steam_prices(summaries)
     transformed = transform_data(summaries, prices)
     load_data(transformed)
