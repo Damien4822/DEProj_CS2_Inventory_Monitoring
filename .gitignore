@@ -7,3 +7,4 @@ airflow/logs/
 airflow/simple_auth_manager_passwords.json.generated
 airflow/dags/__pycache__/
 airflow/dags/__pycache__/*
+airflow/data/cookies/*.json
