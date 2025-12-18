@@ -48,6 +48,7 @@ async def login_buff(browser, username:str, password:str):
             filtered_cookies.append(cookie)
     #for future scaling, consider using redis.
     return filtered_cookies
+
 def save_cookies(site: str, cookies: list):
     path = COOKIES_DIR / f"{site}.json"
     with path.open("w") as f:

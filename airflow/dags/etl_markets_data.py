@@ -1,14 +1,14 @@
 from datetime import datetime,timedelta
 import time
 import random
-from collections import defaultdict
 from urllib.parse import quote
 import requests
 import pandas as pd
 import os
 from airflow import DAG
 from airflow.decorators import task
-from airflow.providers.standard.operators.python import PythonOperator
+from pathlib import Path
+import json
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -20,7 +20,15 @@ HEADERS = {
 STEAMID64 = "76561198923974658"
 APPID = 730                          # CS2 / CS:GO
 CONTEXTID = 2  
+COOKIES_DIR = Path("/airflow/data/cookies")
 
+def load_cookies(site: str):
+    path = COOKIES_DIR / f"{site}.json"
+    with path.open("r") as f:
+        cookies_list = json.load(f)
+    # Convert to dict for requests
+    cookies_dict = {c["name"]: c["value"] for c in cookies_list}
+    return cookies_dict
 
 def fetch_inventory_steam(steamid64: str, appid: int, contextid: int, start: str = None):
     url = f"https://steamcommunity.com/inventory/{steamid64}/{appid}/{contextid}"
@@ -81,7 +89,7 @@ def inventory_items(steamid64: str, appid: int, contextid: int, delay_between_re
 
     return items, data
 
-def get_market_price(market_hash_name, appid=730, currency=1):
+def get_steam_market_price(market_hash_name, appid=730, currency=1):
     url = f"http://steamcommunity.com/market/priceoverview/?appid={appid}&currency={currency}&market_hash_name={quote(market_hash_name)}"
     try:
         resp = requests.get(url, headers=HEADERS, timeout=10)
@@ -100,6 +108,42 @@ def get_market_price(market_hash_name, appid=730, currency=1):
     if all(v is None for v in prices.values()):
         return None
     return prices
+
+def get_buff_market_price(market_hash_name,cookies:dict):
+    base_url = "https://buff.163.com/api/market/goods"
+    url = base_url + f"?game=csgo&page_num=1&search=" +quote(market_hash_name)
+
+    resp = requests.get(url,headers=HEADERS,cookies= cookies)
+
+    if (resp.status_code == 200):
+        data = resp.json()
+    
+    if "data" not in data or not data["data"]["items"]:
+        print("No matching items found.")
+        return None
+    return data
+def transform_buff_market_data(market_hash_name, raw_data):
+    items = raw_data["data"]["items"]
+
+    matched_item = None
+    for item in items:
+        if item["market_hash_name"] == market_hash_name:
+            matched_item = item
+            break
+    
+    if not matched_item:
+        print("Item found but names do not exactly match.")
+        return None
+    else:
+    #converting the return data to match with steam's response
+        processed_data = {
+            market_hash_name: {
+                "lowest_price": f"${matched_item['sell_min_price']}",
+                "median_price": f"${matched_item['quick_price']}",
+                "volume": str(matched_item["sell_num"])
+            }
+    }
+        return processed_data
 
 default_args={
     'owner': 'airflow',
@@ -127,8 +171,10 @@ with DAG(
         seen_names = set()
 
         for i, it in enumerate(items[:200], start=1):
+            item_count = 1
             name = it["market_hash_name"]
             if not name or name in seen_names:
+                item_count + 1
                 continue
             seen_names.add(name)
             summaries.append({
@@ -137,21 +183,22 @@ with DAG(
                 "market_hash_name": name,
                 "tradable": it.get("tradable"),
                 "marketable": it.get("marketable"),
+                "item_count": item_count
             })
 
         print(f"Extracted {len(summaries)} tradable & marketable items.")
         return summaries
-    
+    #STEAM
     @task
-    def fetch_steam_prices(summaries: list):
-        if not summaries:
+    def fetch_steam_data(item_list: list):
+        if not item_list:
             print("No items to fetch prices for.")
             return {}
 
         prices = {}
-        for item in summaries:
+        for item in item_list:
             market_hash_name = item["market_hash_name"]
-            data = get_market_price(market_hash_name)
+            data = get_steam_market_price(market_hash_name)
             if data:
                 prices[market_hash_name] = data
                 time.sleep(random.uniform(4.5, 6.0))
@@ -159,7 +206,7 @@ with DAG(
         return prices
     
     @task
-    def transform_data(summaries: list, prices: dict):
+    def transform_steam_data(summaries: list, prices: dict):
         transformed = []
         for item in summaries:
             name = item["market_hash_name"]
@@ -189,8 +236,25 @@ with DAG(
         print(f"Data successfully exported to: {file_path}")
         return file_path
 
+    #BUFF
+    @task
+    def fetch_buff_data(item_list: list):
+        if not item_list:
+            print("No items to fetch prices for.")
+            return {}
+
+        prices = {}
+        for item in item_list:
+            market_hash_name = item["market_hash_name"]
+            cookies = load_cookies("buff")
+            data = get_buff_market_price(market_hash_name,cookies)
+            if data:
+                prices[market_hash_name] = data
+                time.sleep(random.uniform(4.5, 6.0))
+        print(f"Fetched {len(prices)} market prices.")
+        return prices
     # Task dependencies (TaskFlow syntax)
-    summaries = extract_inventory()
-    prices = fetch_steam_prices(summaries)
-    transformed = transform_data(summaries, prices)
-    load_data(transformed)
+    item_list = extract_inventory()
+    steam_data = fetch_steam_data(item_list)
+    steam_transformed = transform_steam_data(item_list, steam_data)
+    load_data(steam_transformed)
