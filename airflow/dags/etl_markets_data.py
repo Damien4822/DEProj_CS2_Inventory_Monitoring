@@ -206,9 +206,9 @@ with DAG(
         return prices
     
     @task
-    def transform_steam_data(summaries: list, prices: dict):
+    def transform_steam_data(item_list: list, prices: dict):
         transformed = []
-        for item in summaries:
+        for item in item_list:
             name = item["market_hash_name"]
             price_data = prices.get(name, {})
             transformed.append({
@@ -222,7 +222,7 @@ with DAG(
         return transformed
     
     @task
-    def load_data(transformed: list):
+    def load_steam_data(transformed: list):
         if not transformed:
             print("No transformed data found. Skipping export.")
             return None
@@ -231,7 +231,7 @@ with DAG(
         output_dir = "/home/ubuntu/DE_Projects/DEProj_CS2_Inventory_Monitoring/temp"
         os.makedirs(output_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_path = os.path.join(output_dir, f"cs2_market_data_{timestamp}.xlsx")
+        file_path = os.path.join(output_dir, f"steam_market_data_{timestamp}.xlsx")
         df.to_excel(file_path, index=False)
         print(f"Data successfully exported to: {file_path}")
         return file_path
@@ -251,10 +251,42 @@ with DAG(
             if data:
                 prices[market_hash_name] = data
                 time.sleep(random.uniform(4.5, 6.0))
-        print(f"Fetched {len(prices)} market prices.")
         return prices
+    @task
+    def transform_buff_data(item_list: list, prices: dict):
+        transformed = []
+        for item in item_list:
+            name = item["market_hash_name"]
+            price_data = prices.get(name, {})
+            transformed.append({
+                "name": name,
+                "lowest_price": f"${price_data['sell_min_price']}",
+                "median_price": f"${price_data['quick_price']}",
+                "volume": str(price_data["sell_num"])
+            })
+        return transformed
+    
+    @task
+    def load_buff_data(transformed: list):
+        if not transformed:
+            print("No transformed data found. Skipping export.")
+            return None
+
+        df = pd.DataFrame(transformed)
+        output_dir = "/home/ubuntu/DE_Projects/DEProj_CS2_Inventory_Monitoring/temp"
+        os.makedirs(output_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_path = os.path.join(output_dir, f"buff_market_data_{timestamp}.xlsx")
+        df.to_excel(file_path, index=False)
+        print(f"Data successfully exported to: {file_path}")
+        return file_path
+
     # Task dependencies (TaskFlow syntax)
     item_list = extract_inventory()
     steam_data = fetch_steam_data(item_list)
     steam_transformed = transform_steam_data(item_list, steam_data)
-    load_data(steam_transformed)
+    load_steam_data(steam_transformed)
+
+    buff_data = fetch_buff_data(item_list)
+    buff_transformed = transform_buff_data(item_list,buff_data)
+    load_buff_data(steam_transformed)
