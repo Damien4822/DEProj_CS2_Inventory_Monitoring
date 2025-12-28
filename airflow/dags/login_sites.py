@@ -1,8 +1,7 @@
 from datetime import datetime,timedelta
 from airflow import DAG
-from airflow.decorators import task
-from playwright.async_api import async_playwright
-import asyncio
+from airflow.sdk import task
+from playwright.sync_api import sync_playwright
 import json
 from pathlib import Path
 
@@ -50,24 +49,20 @@ async def login_buff(browser, username:str, password:str):
     return filtered_cookies
 
 def save_cookies(site: str, cookies: list):
+    COOKIES_DIR.mkdir(parents=True, exist_ok=True)
     path = COOKIES_DIR / f"{site}.json"
     with path.open("w") as f:
         json.dump(cookies, f, indent=2)
 @task
 def login_all_sites():
-    async def run():
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(
-                headless=True,
-                args=["--disable-dev-shm-usage"],
-            )
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
         try:
-            buff_cookies = await login_buff(browser,username,password)
+            buff_cookies = login_buff(browser,username,password)
             save_cookies("buff",buff_cookies)
         finally:
-            await browser.close()
+            browser.close()
 
-    asyncio.run(run())
 
 
 with DAG(
