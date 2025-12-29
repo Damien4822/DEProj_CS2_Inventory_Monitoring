@@ -3,11 +3,15 @@ from airflow import DAG
 from airflow.sdk import task
 from playwright.sync_api import sync_playwright
 import json
+import os
+import asyncio
 from pathlib import Path
+from airflow.utils.log.logging_mixin import LoggingMixin
 
+logger = LoggingMixin().log
 username=''
 password=''
-COOKIES_DIR = Path("/airflow/data/cookies")
+COOKIES_DIR = Path(os.environ["AIRFLOW_HOME"]) / "data" / "cookies"
 default_args={
     'owner': 'airflow',
     'depends_on_past': False,
@@ -58,7 +62,9 @@ def login_all_sites():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         try:
+            logger.info("Start logging-in buff")
             buff_cookies = login_buff(browser,username,password)
+            logger.info("Saving buff's cookies")
             save_cookies("buff",buff_cookies)
         finally:
             browser.close()
