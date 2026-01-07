@@ -2,6 +2,7 @@ from datetime import datetime,timedelta
 from airflow import DAG
 from airflow.sdk import task
 from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 import json
 import os
 import asyncio
@@ -18,13 +19,23 @@ default_args={
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+ 
+   'retry_delay': timedelta(minutes=5),
 }
+async def login_all_sites_async():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=False)
+        logger.info("Start logging-in buff")
+        buff_cookies = await login_buff(browser,username,password)
+        logger.info("Saving buff's cookies")
+        save_cookies("buff",buff_cookies)
+        await browser.close()
+
 async def login_buff(browser, username:str, password:str):
     context = await browser.new_context()
     page = await context.new_page()
 
-    await page.goto("http://buff.163.com")
+    await page.goto("http://buff.163.com",wait_until="networkidle")
     await page.click("text=Login/Register")
 
     async with page.expect_popup() as popup_info:
@@ -59,16 +70,7 @@ def save_cookies(site: str, cookies: list):
         json.dump(cookies, f, indent=2)
 @task
 def login_all_sites():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        try:
-            logger.info("Start logging-in buff")
-            buff_cookies = login_buff(browser,username,password)
-            logger.info("Saving buff's cookies")
-            save_cookies("buff",buff_cookies)
-        finally:
-            browser.close()
-
+    asyncio.run(login_all_sites_async())
 
 
 with DAG(
