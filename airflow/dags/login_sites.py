@@ -19,12 +19,17 @@ default_args={
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
- 
+    "pool": "critical_pool",
    'retry_delay': timedelta(minutes=5),
 }
 async def login_all_sites_async():
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless = False,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+            ],)
         logger.info("Start logging-in buff")
         buff_cookies = await login_buff(browser,username,password)
         logger.info("Saving buff's cookies")
@@ -35,7 +40,7 @@ async def login_buff(browser, username:str, password:str):
     context = await browser.new_context()
     page = await context.new_page()
 
-    await page.goto("http://buff.163.com",wait_until="networkidle")
+    await page.goto("http://buff.163.com", wait_until="domcontentloaded", timeout=60000)
     await page.click("text=Login/Register")
 
     async with page.expect_popup() as popup_info:
@@ -78,6 +83,7 @@ with DAG(
     default_args=default_args,
     description='Automation for login and get sites\'s cookies ',
     schedule='0 */6 * * *',#setup to run every 6hours 
+    max_active_runs=1,
     start_date=datetime(2025, 10, 1),
     catchup=False,
     tags=['login', 'playwright'],
