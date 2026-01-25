@@ -9,6 +9,7 @@ from airflow import DAG
 from airflow.decorators import task
 from pathlib import Path
 import json
+from airflow.configuration import conf
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -20,7 +21,8 @@ HEADERS = {
 STEAMID64 = "76561198923974658"
 APPID = 730                          # CS2 / CS:GO
 CONTEXTID = 2  
-COOKIES_DIR = Path("/airflow/data/cookies")
+AIRFLOW_HOME = Path(os.environ["AIRFLOW_HOME"])
+COOKIES_DIR = AIRFLOW_HOME / "data" / "cookies"
 
 def load_cookies(site: str):
     path = COOKIES_DIR / f"{site}.json"
@@ -151,6 +153,7 @@ default_args={
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
+    "pool": "default_pool",
     'retry_delay': timedelta(minutes=5),
 }
 
@@ -161,6 +164,8 @@ with DAG(
     schedule='0 * * * *',#setup hourly 
     start_date=datetime(2025, 10, 1),
     catchup=False,
+    max_active_runs=2,
+    max_active_tasks=4,
     tags=['cs2', 'etl', 'spark'],
 ) as dag:
     
@@ -191,6 +196,7 @@ with DAG(
     #STEAM
     @task
     def fetch_steam_data(item_list: list):
+        print("start fetching steam data")
         if not item_list:
             print("No items to fetch prices for.")
             return {}
@@ -208,6 +214,7 @@ with DAG(
     @task
     def transform_steam_data(item_list: list, prices: dict):
         transformed = []
+        print("start transforming steam data")
         for item in item_list:
             name = item["market_hash_name"]
             price_data = prices.get(name, {})
@@ -226,7 +233,7 @@ with DAG(
         if not transformed:
             print("No transformed data found. Skipping export.")
             return None
-
+        print("loading steam data")
         df = pd.DataFrame(transformed)
         output_dir = "/home/ubuntu/DE_Projects/DEProj_CS2_Inventory_Monitoring/temp"
         os.makedirs(output_dir, exist_ok=True)
@@ -239,6 +246,7 @@ with DAG(
     #BUFF
     @task
     def fetch_buff_data(item_list: list):
+        print("start fetching buff data")
         if not item_list:
             print("No items to fetch prices for.")
             return {}
@@ -255,14 +263,15 @@ with DAG(
     @task
     def transform_buff_data(item_list: list, prices: dict):
         transformed = []
+        print("start transforming steam data")
         for item in item_list:
             name = item["market_hash_name"]
             price_data = prices.get(name, {})
             transformed.append({
                 "name": name,
-                "lowest_price": f"${price_data['sell_min_price']}",
-                "median_price": f"${price_data['quick_price']}",
-                "volume": str(price_data["sell_num"])
+                "lowest_price": f"${price_data.get('sell_min_price',0)}",
+                "median_price": f"${price_data.get('quick_price',0)}",
+                "volume": str(price_data.get("sell_num",0))
             })
         return transformed
     
@@ -271,7 +280,7 @@ with DAG(
         if not transformed:
             print("No transformed data found. Skipping export.")
             return None
-
+        print("loading buff data")
         df = pd.DataFrame(transformed)
         output_dir = "/home/ubuntu/DE_Projects/DEProj_CS2_Inventory_Monitoring/temp"
         os.makedirs(output_dir, exist_ok=True)
@@ -289,4 +298,4 @@ with DAG(
 
     buff_data = fetch_buff_data(item_list)
     buff_transformed = transform_buff_data(item_list,buff_data)
-    load_buff_data(steam_transformed)
+    load_buff_data(buff_transformed)
