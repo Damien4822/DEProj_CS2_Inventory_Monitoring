@@ -252,9 +252,9 @@ with DAG(
             return {}
 
         prices = {}
+        cookies = load_cookies("buff")
         for item in item_list:
             market_hash_name = item["market_hash_name"]
-            cookies = load_cookies("buff")
             data = get_buff_market_price(market_hash_name,cookies)
             if data:
                 prices[market_hash_name] = data
@@ -262,17 +262,46 @@ with DAG(
         return prices
     @task
     def transform_buff_data(item_list: list, prices: dict):
+        # transformed = []
+        # print("start transforming steam data")
+        # for item in item_list:
+        #     name = item["market_hash_name"]
+        #     price_data = prices.get(name, {})
+        #     transformed.append({
+        #         "name": name,
+        #         "lowest_price": f"${price_data.get('sell_min_price',0)}",
+        #         "median_price": f"${price_data.get('quick_price',0)}",
+        #         "volume": str(price_data.get("sell_num",0))
+        #     })
+        # return transformed
+        print("start transforming buff data")
         transformed = []
-        print("start transforming steam data")
+
         for item in item_list:
             name = item["market_hash_name"]
-            price_data = prices.get(name, {})
+            raw = prices.get(name)
+
+            if not raw:
+                continue
+
+            items = raw.get("data", {}).get("items", [])
+
+            matched = None
+            for i in items:
+                if i.get("market_hash_name") == name:
+                    matched = i
+                    break
+
+            if not matched:
+                continue
+
             transformed.append({
                 "name": name,
-                "lowest_price": f"${price_data.get('sell_min_price',0)}",
-                "median_price": f"${price_data.get('quick_price',0)}",
-                "volume": str(price_data.get("sell_num",0))
+                "lowest_price": f"${matched.get('sell_min_price', 0)}",
+                "median_price": f"${matched.get('quick_price', 0)}",
+                "volume": str(matched.get("sell_num", 0))
             })
+
         return transformed
     
     @task
