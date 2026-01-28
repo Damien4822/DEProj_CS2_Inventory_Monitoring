@@ -220,8 +220,8 @@ with DAG(
             price_data = prices.get(name, {})
             transformed.append({
                 "name": name,
-                "lowest_price": price_data.get("lowest_price"),
-                "median_price": price_data.get("median_price"),
+                "lowest_price(USD)": price_data.get("lowest_price"),
+                "median_price(USD)": price_data.get("median_price"),
                 "volume": price_data.get("volume"),
             })
 
@@ -297,8 +297,8 @@ with DAG(
 
             transformed.append({
                 "name": name,
-                "lowest_price": f"${matched.get('sell_min_price', 0)}",
-                "median_price": f"${matched.get('quick_price', 0)}",
+                "lowest_price(CNY)": f"{matched.get('sell_min_price', 0)}",
+                "median_price(CNY)": f"{matched.get('quick_price', 0)}",
                 "volume": str(matched.get("sell_num", 0))
             })
 
