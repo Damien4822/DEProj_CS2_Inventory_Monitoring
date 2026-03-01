@@ -235,7 +235,8 @@ with DAG(
             return None
         print("loading steam data")
         df = pd.DataFrame(transformed)
-        output_dir = "/home/ubuntu/DE_Projects/DEProj_CS2_Inventory_Monitoring/temp"
+        output_dir = Path(__file__).resolve().parents[2] / "output"
+        output_dir.mkdir(parents=True, exist_ok=True)
         os.makedirs(output_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_path = os.path.join(output_dir, f"steam_market_data_{timestamp}.xlsx")
@@ -262,18 +263,6 @@ with DAG(
         return prices
     @task
     def transform_buff_data(item_list: list, prices: dict):
-        # transformed = []
-        # print("start transforming steam data")
-        # for item in item_list:
-        #     name = item["market_hash_name"]
-        #     price_data = prices.get(name, {})
-        #     transformed.append({
-        #         "name": name,
-        #         "lowest_price": f"${price_data.get('sell_min_price',0)}",
-        #         "median_price": f"${price_data.get('quick_price',0)}",
-        #         "volume": str(price_data.get("sell_num",0))
-        #     })
-        # return transformed
         print("start transforming buff data")
         transformed = []
 
@@ -311,7 +300,8 @@ with DAG(
             return None
         print("loading buff data")
         df = pd.DataFrame(transformed)
-        output_dir = "/home/ubuntu/DE_Projects/DEProj_CS2_Inventory_Monitoring/temp"
+        output_dir = Path(__file__).resolve().parents[2] / "output"
+        output_dir.mkdir(parents=True, exist_ok=True)
         os.makedirs(output_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_path = os.path.join(output_dir, f"buff_market_data_{timestamp}.xlsx")
