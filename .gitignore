@@ -12,3 +12,5 @@ airflow/data/cookies/*.json
 versions/v1_local/dags/__pycache__
 versions/v1_local/dags/__pycache__/*
 versions/v1_local/data/cookies/*.json
+versions/v1_local/output/
+versions/v1_local/output/*
