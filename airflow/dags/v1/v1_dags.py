@@ -1,0 +1,1 @@
+from versions.v1_local.dags.etl_markets_data import dag
