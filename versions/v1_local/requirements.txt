@@ -3,4 +3,3 @@ playwright==1.49
 numpy==2.2.6
 pandas==2.3.3
 ipykernel
-redis
