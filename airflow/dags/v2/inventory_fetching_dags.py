@@ -1,0 +1,1 @@
+from versions.v2_distributed.pipelines.inventory_fetching import dag

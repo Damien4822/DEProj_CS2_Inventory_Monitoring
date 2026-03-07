@@ -43,32 +43,44 @@ This version was built as a prototype in order to:
 
 This version was developed and tested in a local Linux environment.
 
-### 1. Create Virtual Environment
-
-```bash
-python -m venv venv
-source venv/bin/activate  # On Linux / macOS
-```
-### 2. Install Dependencies
+### 1. Install Dependencies
+Install the required packages:
 ```bash
 pip install -r requirements.txt
 ```
-### 3. Install Playwright Browsers
+### 2. Playwright Browsers Setup
+Install the required browser binaries:
 ```bash
 playwright install
 ```
-### 4. Airflow Configuration
 
-The following parameters are defined directly in the DAG:
+###  Execution Model
 
-- `max_active_runs=2`
-- `max_active_tasks=4`
+In the current repository structure, this pipeline is executed through Apache Airflow DAGs, located in:
 
-These values limit parallel execution to:
+```
+airflow/dags/versions/v1/
+```
 
-- Prevent API rate limiting
-- Reduce excessive fan-out requests
-Global Airflow configuration remains largely default.
+Airflow DAGs will import the pipeline logic from
+```
+versions/v1/
+```
+
+Running the pipeline directly is *not recommended*, as scheduling and task orchestration are handled by Airflow.
+
+###  DAG Configuration
+The DAG limits parallel execution using the following parameters:
+
+- max_active_runs = 2
+- max_active_tasks = 4
+
+These limits help to:
+
+* prevent API rate limiting
+* avoid excessive parallel browser sessions
+
+Global Airflow configuration remains largely unchanged.
 
 ---
 
