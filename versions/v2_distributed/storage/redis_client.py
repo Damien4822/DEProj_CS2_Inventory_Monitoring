@@ -13,21 +13,17 @@ redis_client = redis.Redis(
 
 
 def save_cookies(site: str, cookies: list):
-
     key = f"cookies:{site}"
-
     redis_client.set(
         key,
-        json.dumps(cookies)
+        json.dumps(cookies),
+        ex=86400  # 1 day
     )
 
 
 def get_cookies(site: str):
-
     key = f"cookies:{site}"
-
     data = redis_client.get(key)
-
     if not data:
         return None
 
