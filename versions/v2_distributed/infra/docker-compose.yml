@@ -35,26 +35,19 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  worker:
-    build:
-      context: .
-      dockerfile: docker/worker.Dockerfile
+  airflow:
+    image: apache/airflow:2.9.0
+    container_name: airflow
     depends_on:
-      - rabbitmq
-      - redis
       - postgres
-      - mongo
+      - redis
+      - rabbitmq
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../../airflow:/opt/airflow
     environment:
-      RABBITMQ_HOST: rabbitmq
-      REDIS_HOST: redis
-      POSTGRES_HOST: postgres
-      MONGO_URI: mongodb://mongo:27017
-    deploy:
-    resources:
-      limits:
-        cpus: "1"
-        memory: 1G
-    restart: unless-stopped
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
 
 volumes:
   postgres_data:

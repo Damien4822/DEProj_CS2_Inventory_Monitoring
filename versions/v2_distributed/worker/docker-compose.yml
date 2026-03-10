@@ -5,15 +5,10 @@ services:
   worker:
     build:
       context: ..
-      dockerfile: versions/v2_distributed/docker/worker.Dockerfile
-
-    restart: unless-stopped
-
+      dockerfile: docker/worker.Dockerfile
     environment:
-      RABBITMQ_HOST: <INFRA_SERVER_IP>
-      REDIS_HOST: <INFRA_SERVER_IP>
-      POSTGRES_HOST: <INFRA_SERVER_IP>
-      MONGO_URI: mongodb://<INFRA_SERVER_IP>:27017
-
-    deploy:
-      replicas: 3
+      RABBITMQ_HOST: 192.168.1.100
+      REDIS_HOST: 192.168.1.100
+      POSTGRES_HOST: 192.168.1.100
+      MONGO_URI: mongodb://192.168.1.100:27017
+    restart: unless-stopped
