@@ -28,3 +28,13 @@ def get_cookies(site: str):
         return None
 
     return json.loads(data)
+
+def get_cookies_dict(site: str):
+    """Convert stored cookie list → requests cookie dict"""
+
+    cookies = get_cookies(site)
+
+    if not cookies:
+        return None
+
+    return {c["name"]: c["value"] for c in cookies}

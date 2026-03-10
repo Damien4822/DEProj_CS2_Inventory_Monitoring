@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+
+  worker:
+    build:
+      context: ..
+      dockerfile: versions/v2_distributed/docker/worker.Dockerfile
+
+    restart: unless-stopped
+
+    environment:
+      RABBITMQ_HOST: <INFRA_SERVER_IP>
+      REDIS_HOST: <INFRA_SERVER_IP>
+      POSTGRES_HOST: <INFRA_SERVER_IP>
+      MONGO_URI: mongodb://<INFRA_SERVER_IP>:27017
+
+    deploy:
+      replicas: 3
