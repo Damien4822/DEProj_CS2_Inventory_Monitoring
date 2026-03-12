@@ -14,3 +14,5 @@ versions/v1_local/dags/__pycache__/*
 versions/v1_local/data/cookies/*.json
 versions/v1_local/output/
 versions/v1_local/output/*
+#Ignore local config of v2
+versions/v2_distributed/worker/.env

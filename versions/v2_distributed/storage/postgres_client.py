@@ -29,47 +29,45 @@ def get_connection():
 def release_connection(conn):
     pool.putconn(conn)
 
+def insert_price_snapshot(
+    market_hash_name,
+    steam_price=None,
+    steam_median=None,
+    steam_volume=None,
+    buff_price=None,
+    buff_median=None,
+    buff_volume=None
+):
 
-def insert_request(site: str, status: int):
+    conn = get_connection()
 
-    conn = None
     try:
-        conn = get_connection()
+        with conn.cursor() as cur:
 
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO requests_log (site, status)
-                VALUES (%s, %s)
-                """,
-                (site, status)
-            )
+            cur.execute("""
+                INSERT INTO item_price_snapshots (
+                    market_hash_name,
+                    steam_price,
+                    steam_median_price,
+                    steam_volume,
+                    buff_price,
+                    buff_median_price,
+                    buff_volume
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                market_hash_name,
+                steam_price,
+                steam_median,
+                steam_volume,
+                buff_price,
+                buff_median,
+                buff_volume
+            ))
 
         conn.commit()
 
     finally:
-        if conn:
-            release_connection(conn)
-
-
-def fetch_requests():
-
-    conn = None
-
-    try:
-        conn = get_connection()
-
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(
-                "SELECT * FROM requests_log ORDER BY id DESC"
-            )
-
-            return cursor.fetchall()
-
-    finally:
-        if conn:
-            release_connection(conn)
-
-
+        release_connection(conn)
 def close_pool():
     pool.closeall()

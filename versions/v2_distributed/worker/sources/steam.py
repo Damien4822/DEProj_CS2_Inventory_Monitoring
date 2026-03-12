@@ -28,12 +28,9 @@ def get_steam_market_price(market_hash_name, appid=730, currency=1):
         return None
 
     prices = {
-        "lowest_price": data.get("lowest_price"),
-        "median_price": data.get("median_price"),
-        "volume": data.get("volume")
+        "lowest_price": data.get("lowest_price","").replace("$",""),
+        "median_price": data.get("median_price","").replace("$",""),
+        "volume": data.get("volume","")
     }
 
-    if all(v is None for v in prices.values()):
-        return None
-
-    return prices
+    return prices, data

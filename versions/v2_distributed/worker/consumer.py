@@ -13,7 +13,7 @@ def start_consumer():
             item = json.loads(body)
 
             print(f"Processing: {item['market_hash_name']}")
-
+            
             process_item(item)
 
             ch.basic_ack(delivery_tag=method.delivery_tag)

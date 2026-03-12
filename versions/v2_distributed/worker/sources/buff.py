@@ -25,8 +25,14 @@ def get_buff_market_price(market_hash_name):
     resp.raise_for_status()
 
     data = resp.json()
-
+    
     if "data" not in data or not data["data"]["items"]:
         return None
-
-    return data
+    processed_data = {
+        market_hash_name: {
+            "lowest_price": f"{data["data"]["items"]['sell_min_price']}",
+            "median_price": f"{data["data"]["items"]['quick_price']}",
+            "volume": str(data["data"]["items"]["sell_num"])
+        }
+    }   
+    return processed_data, data

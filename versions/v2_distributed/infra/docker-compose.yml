@@ -8,12 +8,15 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+    - rabbitmq_data:/var/lib/rabbitmq
 
   redis:
     image: redis:7
     container_name: redis
     ports:
       - "6379:6379"
+    redis_data:/data
 
   postgres:
     image: postgres:15
@@ -26,6 +29,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ../../storage/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
   mongo:
     image: mongo:6
@@ -48,7 +52,3 @@ services:
       - ../../../airflow:/opt/airflow
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
-
-volumes:
-  postgres_data:
-  mongo_data:
