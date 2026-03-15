@@ -5,7 +5,7 @@ from playwright.async_api import async_playwright
 import asyncio
 from airflow.utils.log.logging_mixin import LoggingMixin
 
-from v2_distributed.storage.redis_client import save_cookies
+from versions.v2_distributed.storage.redis_client import save_cookies
 import os
 
 logger = LoggingMixin().log

@@ -3,7 +3,7 @@ import time
 import requests
 from airflow import DAG
 from airflow.decorators import task
-from queue.rabbitmq_client import RabbitMQClient
+from versions.v2_distributed.queue.rabbitmq_client import RabbitMQClient
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
