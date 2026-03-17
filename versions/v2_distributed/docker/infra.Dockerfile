@@ -1,4 +1,4 @@
-FROM apache/airflow:3.0.0
+FROM apache/airflow:3.8
 
 USER root
 
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
 USER airflow
 
 # Install python dependencies
-COPY ../../../airflow/requirements.txt /requirements.txt
+COPY infra/requirements.txt /requirements.txt
 
 RUN pip install --no-cache-dir -r /requirements.txt
 

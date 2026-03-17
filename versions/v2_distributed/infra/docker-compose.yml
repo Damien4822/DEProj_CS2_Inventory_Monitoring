@@ -42,8 +42,8 @@ services:
 
   airflow:
     build:
-    context: ../../..
-    dockerfile: versions/v2_distributed/docker/airflow.Dockerfile
+      context: ..
+      dockerfile: ../v2_distributed/docker/infra.Dockerfile
     container_name: airflow
     depends_on:
       - redis
@@ -51,19 +51,19 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      # - ../../../airflow/simple_auth_manager_passwords.json.generated:/opt/airflow/simple_auth_manager_passwords.json.generated
-      # - ../../../airflow/dags:/opt/airflow/dags
-      # - ../../../airflow/logs:/opt/airflow/logs
-      # - ../../../airflow/plugins:/opt/airflow/plugins
-      # - ../../../versions/v1_local:/opt/versions/v1_local
-      # - ../../../versions/v2_distributed:/opt/versions/v2_distributed
-      - ../../../airflow:/opt/airflow
+      - ../../../airflow/dags:/opt/airflow/dags
+      - ../../../airflow/logs:/opt/airflow/logs
+      - ../../../airflow/plugins:/opt/airflow/plugins
       - ../../../versions:/opt/versions
+
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       PYTHONPATH: /opt
-    command: standalone
+      AIRFLOW_HOME: /opt/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+    command: bash -c "airflow db migrate && airflow scheduler & airflow api-server"
     
 volumes:
   rabbitmq_data:

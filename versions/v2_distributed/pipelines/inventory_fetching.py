@@ -1,6 +1,7 @@
 from datetime import datetime,timedelta
 import time
 import requests
+import airflow
 from airflow import DAG
 from airflow.decorators import task
 from versions.v2_distributed.queue.rabbitmq_client import RabbitMQClient
