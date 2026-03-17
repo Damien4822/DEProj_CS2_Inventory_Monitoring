@@ -9,7 +9,6 @@ from airflow import DAG
 from airflow.decorators import task
 from pathlib import Path
 import json
-from airflow.configuration import conf
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -166,7 +165,7 @@ with DAG(
     catchup=False,
     max_active_runs=2,
     max_active_tasks=4,
-    tags=['cs2', 'etl', 'spark'],
+    tags=['cs2', 'etl_market', 'v1'],
 ) as dag:
     
     @task

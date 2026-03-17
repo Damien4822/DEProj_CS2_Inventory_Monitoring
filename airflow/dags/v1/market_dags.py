@@ -1,1 +1,0 @@
-from versions.v1_local.pipelines.etl_markets_data import dag

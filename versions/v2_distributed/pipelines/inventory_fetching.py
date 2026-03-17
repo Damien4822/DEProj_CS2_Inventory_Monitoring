@@ -2,7 +2,7 @@ from datetime import datetime,timedelta
 import time
 import requests
 import airflow
-from airflow import DAG
+from airflow.sdk import DAG
 from airflow.decorators import task
 from versions.v2_distributed.queue.rabbitmq_client import RabbitMQClient
 HEADERS = {
@@ -87,15 +87,15 @@ default_args={
 }
 
 with DAG(
-    'cs2_market_etl',
+    'inventory_fetching',
     default_args=default_args,
-    description='ETL pipeline for CS2 Market data using Spark and Airflow',
+    description='ETL pipeline for fetching steam\'s inventory',
     schedule='0 * * * *',#setup hourly 
     start_date=datetime(2025, 10, 1),
     catchup=False,
     max_active_runs=2,
     max_active_tasks=4,
-    tags=['cs2', 'etl', 'spark'],
+    tags=['cs2', 'inventory-fetching', 'v2'],
 ) as dag:
     
     @task

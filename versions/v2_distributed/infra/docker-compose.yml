@@ -54,7 +54,10 @@ services:
       - ../../../airflow/dags:/opt/airflow/dags
       - ../../../airflow/logs:/opt/airflow/logs
       - ../../../airflow/plugins:/opt/airflow/plugins
+      - ../../../airflow/simple_auth_manager_passwords.json.generated:/opt/airflow/simple_auth_manager_passwords.json.generated
       - ../../../versions:/opt/versions
+      - ../../../versions/v1_local/pipelines:/opt/airflow/dags/v1
+      - ../../../versions/v2_distributed/pipelines:/opt/airflow/dags/v2
 
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
@@ -63,7 +66,8 @@ services:
       AIRFLOW_HOME: /opt/airflow
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
-    command: bash -c "airflow db migrate && airflow scheduler & airflow api-server"
+
+    command: "standalone"
     
 volumes:
   rabbitmq_data:

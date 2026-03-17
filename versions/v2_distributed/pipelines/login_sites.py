@@ -1,6 +1,6 @@
 from datetime import datetime,timedelta
 import airflow
-from airflow import DAG
+from airflow.sdk import DAG
 from airflow.decorators import task
 from playwright.async_api import async_playwright
 import asyncio
@@ -77,14 +77,14 @@ def login_all_sites():
 
 
 with DAG(
-    'login_sites',
+    'login_sites_v2',
     default_args=default_args,
     description='Automation for login and get sites\'s cookies ',
     schedule='0 */6 * * *',#setup to run every 6hours 
     max_active_runs=1,
     start_date=datetime(2025, 10, 1),
     catchup=False,
-    tags=['login', 'playwright'],
+    tags=['login', 'playwright','v2'],
 ) as dag:
     
     login_all_sites()

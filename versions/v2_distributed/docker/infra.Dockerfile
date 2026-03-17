@@ -1,8 +1,8 @@
-FROM apache/airflow:3.8
+FROM apache/airflow:3.0.1
 
 USER root
 
-# Install system dependencies if needed (Playwright often needs these)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
