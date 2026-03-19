@@ -1,5 +1,4 @@
 from datetime import datetime,timedelta
-import airflow
 from airflow.sdk import DAG
 from airflow.decorators import task
 from playwright.async_api import async_playwright

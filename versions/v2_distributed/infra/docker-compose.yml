@@ -1,31 +1,38 @@
-version: "3.9"
-
 services:
 
   rabbitmq:
     image: rabbitmq:3-management
+    env_file:
+      - ../.env
     container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
     volumes:
-    - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
 
   redis:
     image: redis:7
+    env_file:
+      - ../.env
     container_name: redis
     ports:
       - "6379:6379"
     volumes:
-    - redis_data:/data
+      - redis_data:/data
 
   postgres:
     image: postgres:15
+    env_file:
+      - ../.env
     container_name: postgres
     environment:
-      POSTGRES_DB: app
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -34,6 +41,8 @@ services:
 
   mongo:
     image: mongo:6
+    env_file:
+      - ../.env
     container_name: mongo
     ports:
       - "27017:27017"
@@ -44,10 +53,14 @@ services:
     build:
       context: ..
       dockerfile: ../v2_distributed/docker/infra.Dockerfile
+    env_file:
+      - ../.env
     container_name: airflow
     depends_on:
       - redis
       - rabbitmq
+      - postgres
+      - mongo
     ports:
       - "8080:8080"
     volumes:
@@ -55,8 +68,6 @@ services:
       - ../../../airflow/logs:/opt/airflow/logs
       - ../../../airflow/plugins:/opt/airflow/plugins
       - ../../../airflow/simple_auth_manager_passwords.json.generated:/opt/airflow/simple_auth_manager_passwords.json.generated
-      - ../../../versions:/opt/versions
-      - ../../../versions/v1_local/pipelines:/opt/airflow/dags/v1
       - ../../../versions/v2_distributed/pipelines:/opt/airflow/dags/v2
 
     environment:
@@ -66,9 +77,8 @@ services:
       AIRFLOW_HOME: /opt/airflow
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
-
     command: "standalone"
-    
+
 volumes:
   rabbitmq_data:
   redis_data:
