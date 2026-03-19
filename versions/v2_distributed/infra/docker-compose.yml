@@ -68,6 +68,7 @@ services:
       - ../../../airflow/logs:/opt/airflow/logs
       - ../../../airflow/plugins:/opt/airflow/plugins
       - ../../../airflow/simple_auth_manager_passwords.json.generated:/opt/airflow/simple_auth_manager_passwords.json.generated
+      - ../../../versions:/opt/versions
       - ../../../versions/v2_distributed/pipelines:/opt/airflow/dags/v2
 
     environment:
