@@ -22,7 +22,7 @@ default_args={
 }
 async def login_all_sites_async():
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless = True,
+        browser = await p.chromium.launch(headless = False,
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
@@ -37,8 +37,7 @@ async def login_all_sites_async():
 
 async def login_buff(browser, username:str, password:str):
     context = await browser.new_context(
-        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-        viewport={"width": 1280, "height": 800}
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
     )
     page = await context.new_page()
 

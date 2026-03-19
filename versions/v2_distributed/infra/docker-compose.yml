@@ -78,7 +78,7 @@ services:
       AIRFLOW_HOME: /opt/airflow
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
-    command: "standalone"
+    command: bash -c "standalone && airflow pools set critical_pool 5 "Critical tasks pool""
 
 volumes:
   rabbitmq_data:
