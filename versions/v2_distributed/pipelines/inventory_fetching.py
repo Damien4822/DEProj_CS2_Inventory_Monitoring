@@ -3,7 +3,9 @@ import time
 import requests
 from airflow.sdk import DAG
 from airflow.decorators import task
+from airflow.utils.log.logging_mixin import LoggingMixin
 from versions.v2_distributed.queue.rabbitmq_client import RabbitMQClient
+import os
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -11,8 +13,8 @@ HEADERS = {
         "Chrome/117.0.0.0 Safari/537.36"
     )
 }
-
-STEAMID64 = "76561198923974658"
+logger = LoggingMixin().log
+STEAMID64 = os.getenv("STEAMID")
 APPID = 730                          # CS2 / CS:GO
 CONTEXTID = 2  
 
@@ -22,13 +24,12 @@ def fetch_inventory_steam(steamid64: str, appid: int, contextid: int):
     resp.raise_for_status()
     return resp.json()
 
-def inventory_items(steamid64: str, appid: int, contextid: int, delay_between_requests: float = 0.5):
+def inventory_items(steamid64: str, appid: int, contextid: int):
     items = []
     seen_assetids = set()
-    start = None
 
     while True:
-        data = fetch_inventory_steam(steamid64, appid, contextid, start)
+        data = fetch_inventory_steam(steamid64, appid, contextid)
         if not data or "assets" not in data or "descriptions" not in data:
             return items, data
 
@@ -68,10 +69,8 @@ def inventory_items(steamid64: str, appid: int, contextid: int, delay_between_re
         if not data.get("more_items"):
             break
 
-        start = data.get("last_assetid") or data.get("more_start")
-        if not start:
-            break
-        time.sleep(delay_between_requests)
+        #delay between requests
+        time.sleep(2)
 
     return items, data
 
@@ -135,8 +134,10 @@ with DAG(
 
         rabbit.close()
 
-        print(f"Published {len(items)} items to RabbitMQ")
+        logger.info(f"Published {len(items)} items to RabbitMQ")
 
     # Task dependencies (TaskFlow syntax)
+    logger.info("Start extracting inventory")
     item_list = extract_inventory()
+    logger.info("Start publishing items to RabbitMQ")
     publish_to_queue(item_list)

@@ -3,7 +3,7 @@ import pika
 import os
 
 class RabbitMQClient:
-    def init(self):
+    def __init__(self):
         self.host = os.getenv("RABBITMQ_HOST", "rabbitmq")
         self.queue_name = os.getenv("RABBITMQ_QUEUE", "inventory_items")
 

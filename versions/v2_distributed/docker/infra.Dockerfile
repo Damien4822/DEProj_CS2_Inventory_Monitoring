@@ -7,11 +7,15 @@ RUN apt-get update && apt-get install -y \
     libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 \
     libgbm1 libasound2 libpangocairo-1.0-0 libpango-1.0-0 \
     libgtk-3-0 libxss1 libcurl4 fonts-liberation lsb-release \
-    wget ca-certificates xvfb && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    wget ca-certificates \
+    xvfb x11-utils gnumeric \
+    && chmod +x /usr/bin/Xvfb \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    
 COPY infra/requirements.txt /requirements.txt
 
 USER airflow
 RUN pip install --no-cache-dir -r /requirements.txt
-
+RUN pip install pyvirtualdisplay
 RUN playwright install chromium
+

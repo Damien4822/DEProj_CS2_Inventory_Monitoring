@@ -4,13 +4,13 @@ from airflow.decorators import task
 from playwright.async_api import async_playwright
 import asyncio
 from airflow.utils.log.logging_mixin import LoggingMixin
-
+from pyvirtualdisplay import Display
 from versions.v2_distributed.storage.redis_client import save_cookies
 import os
 
 logger = LoggingMixin().log
-username = os.getenv("BUFF_USERNAME")
-password = os.getenv("BUFF_PASSWORD")
+username = os.getenv("STEAM_USERNAME")
+password = os.getenv("STEAM_PASSWORD")
 default_args={
     'owner': 'airflow',
     'depends_on_past': False,
@@ -21,6 +21,8 @@ default_args={
     'retry_delay': timedelta(minutes=5),
 }
 async def login_all_sites_async():
+    display = Display(visible=1, size=(1920, 1080),backend="xvfb")
+    display.start()
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless = False,
             args=[
@@ -34,21 +36,22 @@ async def login_all_sites_async():
         logger.info("Saving buff's cookies")
         save_cookies("buff",buff_cookies)
         await browser.close()
+        display.stop()
 
 async def login_buff(browser, username:str, password:str):
     context = await browser.new_context(
         viewport={"width": 1920, "height": 1080},
         user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
     )
-    page = await browser.new_page()
-    await page.goto("https://buff.163.com",wait_until="domcontentloaded", timeout=120000)
+    page = await context.new_page()
+    await page.goto("https://buff.163.com",wait_until="domcontentloaded", timeout=60000)
 
     # Wait for login button or perform manual login
-    await page.wait_for_selector("text=Login/Register", timeout=120000)
+    await page.wait_for_selector("text=Login/Register", timeout=60000)
     await page.click("text=Login/Register")
     # Prepare to catch the popup (Steam login)
     async with page.expect_popup() as popup_info:
-        await page.is_visible("text=Other login methods",timeout=120000)
+        await page.wait_for_selector("text=Other login methods",timeout=60000)
         await page.click("text=Other login methods")
         
     #inputing account's info ( im using an freshly created account, without steam guard and such)
@@ -61,8 +64,8 @@ async def login_buff(browser, username:str, password:str):
     await password_input.is_visible(timeout=30000)
 
     # Fill credentials
-    await username_input.fill("username")
-    await password_input.fill("password")
+    await username_input.fill(username)
+    await password_input.fill(password)
     await login_section.locator("button", has_text="Sign in").click()
 
     # Click the sign-in button to login buff

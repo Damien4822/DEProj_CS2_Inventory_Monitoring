@@ -83,8 +83,7 @@ services:
       airflow standalone &
       sleep 15 &&
       airflow pools set critical_pool 5 'Critical tasks pool' &&
-      wait
-    "
+      wait"
 
 
 volumes:
