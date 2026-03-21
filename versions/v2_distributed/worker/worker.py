@@ -1,4 +1,4 @@
-from consumer import start_consumer
+from worker.consumer import start_consumer
 
 def main():
     print("CS2 worker started")

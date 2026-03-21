@@ -10,20 +10,25 @@ POSTGRES_USER = os.getenv("POSTGRES_USER", "app")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
 
 # Create connection pool
-pool = SimpleConnectionPool(
-    minconn=1,
-    maxconn=10,
-    host=POSTGRES_HOST,
-    port=POSTGRES_PORT,
-    dbname=POSTGRES_DB,
-    user=POSTGRES_USER,
-    password=POSTGRES_PASSWORD,
-    connect_timeout=5
-)
 
+pool = None
 
+def get_pool():
+    global pool
+    if pool is None:
+        pool = SimpleConnectionPool(
+            minconn=1,
+            maxconn=10,
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT,
+            dbname=POSTGRES_DB,
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+            connect_timeout=5
+        )
+    return pool
 def get_connection():
-    return pool.getconn()
+    return get_pool().getconn()
 
 
 def release_connection(conn):

@@ -4,7 +4,7 @@ import requests
 from airflow.sdk import DAG
 from airflow.decorators import task
 from airflow.utils.log.logging_mixin import LoggingMixin
-from versions.v2_distributed.queue.rabbitmq_client import RabbitMQClient
+from versions.v2_distributed.rabbitMQ.rabbitmq_client import RabbitMQClient
 import os
 HEADERS = {
     "User-Agent": (

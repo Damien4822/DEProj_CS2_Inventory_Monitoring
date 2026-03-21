@@ -1,5 +1,5 @@
-from sources.steam import get_steam_market_price
-from sources.buff import get_buff_market_price
+from worker.sources.steam import get_steam_market_price
+from worker.sources.buff import get_buff_market_price
 from storage.mongo_client import insert_document
 from storage.postgres_client import insert_price_snapshot
 from datetime import datetime, UTC

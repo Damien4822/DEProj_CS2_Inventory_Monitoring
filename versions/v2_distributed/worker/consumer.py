@@ -1,6 +1,6 @@
 import json
-from queue.rabbitmq_client import RabbitMQClient
-from processor import process_item
+from rabbitMQ.rabbitmq_client import RabbitMQClient
+from worker.processor import process_item
 
 
 def start_consumer():

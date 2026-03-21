@@ -1,6 +1,7 @@
 import requests
 from urllib.parse import quote
 from storage.redis_client import get_cookies_dict
+import time
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -11,7 +12,14 @@ HEADERS = {
 
 
 def get_buff_market_price(market_hash_name):
-    cookies = get_cookies_dict("buff")
+    for attempt in range(5):
+        cookies = get_cookies_dict("buff")
+        if cookies:
+            break
+        print("[Buff] Redis not ready, retrying...")
+        time.sleep(2)
+    else:
+        raise Exception("Buff cookies not found in Redis after retries")
 
     if not cookies:
         raise Exception("Buff cookies not found in Redis")
@@ -30,8 +38,8 @@ def get_buff_market_price(market_hash_name):
         return None
     processed_data = {
         market_hash_name: {
-            "lowest_price": f"{data["data"]["items"]['sell_min_price']}",
-            "median_price": f"{data["data"]["items"]['quick_price']}",
+            "lowest_price": data["data"]["items"]['sell_min_price'],
+            "median_price": data["data"]["items"]['quick_price'],
             "volume": str(data["data"]["items"]["sell_num"])
         }
     }   
