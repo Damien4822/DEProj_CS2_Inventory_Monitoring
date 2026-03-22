@@ -8,8 +8,8 @@ MONGO_DB = os.getenv("MONGO_DB", "app")
 MAX_RETRIES = 5
 RETRY_DELAY = 20
 # Create global client (connection pool handled internally)
-client = MongoClient(MONGO_URI)
-
+_mongo_client = None
+_db = None
 # Database reference
 def create_mongo_client():
     for attempt in range(1, MAX_RETRIES + 1):
@@ -24,11 +24,22 @@ def create_mongo_client():
                 raise
             time.sleep(20)
 
-client = create_mongo_client()
-db = client[MONGO_DB]
+def get_mongo_client():
+    """Lazy initialization of MongoClient."""
+    global _mongo_client
+    if _mongo_client is None:
+        _mongo_client = create_mongo_client()
+    return _mongo_client
+
+def get_db():
+    """Lazy initialization of database reference."""
+    global _db
+    if _db is None:
+        _db = get_mongo_client()[MONGO_DB]
+    return _db
 
 def get_collection(name: str):
-    return db[name]
+    return _db[name]
 
 
 def insert_document(collection: str, data: dict):

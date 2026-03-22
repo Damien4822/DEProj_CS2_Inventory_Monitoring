@@ -19,9 +19,7 @@ def get_steam_market_price(market_hash_name, appid=730, currency=1):
     )
 
     resp = requests.get(url, headers=HEADERS, timeout=10)
-
     resp.raise_for_status()
-
     data = resp.json()
 
     if not data.get("success"):

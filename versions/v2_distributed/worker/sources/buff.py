@@ -25,11 +25,9 @@ def get_buff_market_price(market_hash_name):
         raise Exception("Buff cookies not found in Redis")
     
     base_url = "https://buff.163.com/api/market/goods"
-
     url = base_url + f"?game=csgo&page_num=1&search=" + quote(market_hash_name)
 
     resp = requests.get(url, headers=HEADERS, cookies=cookies)
-
     resp.raise_for_status()
 
     data = resp.json()

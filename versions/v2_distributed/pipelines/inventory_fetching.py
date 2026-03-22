@@ -122,18 +122,13 @@ with DAG(
     
     @task
     def publish_to_queue(items: list):
-
         if not items:
             print("No items to publish.")
             return
-
         rabbit = RabbitMQClient()
-
         for item in items:
             rabbit.publish(item)
-
         rabbit.close()
-
         logger.info(f"Published {len(items)} items to RabbitMQ")
 
     # Task dependencies (TaskFlow syntax)

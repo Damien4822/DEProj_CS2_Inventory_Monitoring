@@ -7,7 +7,7 @@ import time
 import random
 
 
-def process_item(item: dict):
+def process_item(item: dict, logger):
 
     market_hash_name = item["market_hash_name"]
 
@@ -26,7 +26,7 @@ def process_item(item: dict):
             result.setdefault("raw", {})["steam"] = steam_raw
 
     except Exception as e:
-        print(f"Steam error: {e}")
+        logger.info(f"Steam error: {e}")
 
     time.sleep(random.uniform(1, 2))
 
@@ -39,7 +39,7 @@ def process_item(item: dict):
             result["sources"]["buff"] = buff_data
             result.setdefault("raw", {})["buff"] = buff_raw
     except Exception as e:
-        print(f"Buff error: {e}")
+        logger.info(f"Buff error: {e}")
 
     time.sleep(random.uniform(1, 2))
 
@@ -50,7 +50,7 @@ def process_item(item: dict):
         "timestamp": datetime.now(UTC),
         "sources": result.get("raw", {})
     })
-    print(f"Saved data for {market_hash_name}")
+    logger.info(f"Saved data for {market_hash_name}")
     # ---------- Save schema -------
     steam = result["sources"].get("steam", {})
     buff = result["sources"].get("buff", {})
@@ -66,4 +66,4 @@ def process_item(item: dict):
         buff_volume=buff.get("volume"),
     )
 
-    print(f"Saved structured data for {market_hash_name}")
+    logger.info(f"Saved structured data for {market_hash_name}")

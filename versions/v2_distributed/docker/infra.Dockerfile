@@ -16,6 +16,7 @@ COPY requirements.txt /requirements.txt
 
 USER airflow
 RUN pip install --no-cache-dir -r /requirements.txt
+RUN pip install playwright
 RUN pip install pyvirtualdisplay
 RUN playwright install chromium
 
