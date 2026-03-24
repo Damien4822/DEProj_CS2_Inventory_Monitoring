@@ -1,5 +1,6 @@
 networks:
   cs2-network:
+    name: cs2-network
     driver: bridge
 services:
   rabbitmq:

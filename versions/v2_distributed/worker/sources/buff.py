@@ -10,8 +10,7 @@ HEADERS = {
     )
 }
 
-
-def get_buff_market_price(market_hash_name):
+def get_buff_market_price(market_hash_name, logger):
     for attempt in range(5):
         cookies = get_cookies_dict("buff")
         if cookies:
@@ -31,14 +30,19 @@ def get_buff_market_price(market_hash_name):
     resp.raise_for_status()
 
     data = resp.json()
-    
+    logger.info(str(data))
+    processed_data = {}
     if "data" not in data or not data["data"]["items"]:
-        return None
-    processed_data = {
-        market_hash_name: {
-            "lowest_price": data["data"]["items"]['sell_min_price'],
-            "median_price": data["data"]["items"]['quick_price'],
-            "volume": str(data["data"]["items"]["sell_num"])
-        }
-    }   
-    return processed_data, data
+        logger.info(f"Fetching {market_hash_name} from BUFF return None")
+        return None, data
+    else:
+        items = data["data"].get("items",[])
+        for item in items:
+            if item.get("market_hash_name")==market_hash_name:
+                processed_data[market_hash_name] = {
+                    "lowest_price": item.get("sell_min_price"),
+                    "median_price": item.get("quick_price"),
+                    "volume": str(item.get("sell_num", 0))
+                }
+        logger.info(f"Finish fetching {market_hash_name} from BUFF")
+        return processed_data, data

@@ -1,5 +1,7 @@
 version: "3.11"
-
+networks:
+  cs2-network:
+    external: true
 services:
   worker:
     container_name: worker
@@ -12,6 +14,5 @@ services:
     restart: unless-stopped
     volumes:
       - ./logs:/app/worker/logs
-networks:
-  cs2-network:
-    external: true
+    networks:
+      - cs2-network

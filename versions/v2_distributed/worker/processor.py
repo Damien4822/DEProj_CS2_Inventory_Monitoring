@@ -19,7 +19,7 @@ def process_item(item: dict, logger):
     # ---------- Steam ----------
     try:
 
-        steam_data, steam_raw = get_steam_market_price(market_hash_name)
+        steam_data, steam_raw = get_steam_market_price(market_hash_name, logger)
 
         if steam_data:
             result["sources"]["steam"] = steam_data
@@ -33,7 +33,7 @@ def process_item(item: dict, logger):
 
     # ---------- Buff ----------
     try:
-        buff_data, buff_raw = get_buff_market_price(market_hash_name)
+        buff_data, buff_raw = get_buff_market_price(market_hash_name, logger)
 
         if buff_data:
             result["sources"]["buff"] = buff_data

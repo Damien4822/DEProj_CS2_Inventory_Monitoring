@@ -83,7 +83,7 @@ async def login_buff(browser, username:str, password:str):
     for cookie in cookies:
         if target_domain in cookie["domain"] :
             filtered_cookies.append(cookie)
-    #for future scaling, consider using redis.
+            
     return filtered_cookies
 
 @task

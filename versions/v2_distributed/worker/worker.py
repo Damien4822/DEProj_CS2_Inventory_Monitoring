@@ -5,7 +5,7 @@ from logging.handlers import TimedRotatingFileHandler
 from datetime import datetime
 
 # File name with current date
-LOG_DIR = "/logs"
+LOG_DIR = "/app/worker/logs"
 today_str = datetime.now().strftime("%Y-%m-%d")
 log_file_path = os.path.join(LOG_DIR, f"worker_{today_str}.log")
 

@@ -10,11 +10,11 @@ HEADERS = {
 }
 
 
-def get_steam_market_price(market_hash_name, appid=730, currency=1):
+def get_steam_market_price(market_hash_name, logger):
 
     url = (
         "http://steamcommunity.com/market/priceoverview/"
-        f"?appid={appid}&currency={currency}"
+        f"?appid=730&currency=1"
         f"&market_hash_name={quote(market_hash_name)}"
     )
 
@@ -30,5 +30,5 @@ def get_steam_market_price(market_hash_name, appid=730, currency=1):
         "median_price": data.get("median_price","").replace("$",""),
         "volume": data.get("volume","")
     }
-
+    logger.info(f"Finish fetching {market_hash_name} from STEAM")
     return prices, data
