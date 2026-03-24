@@ -23,26 +23,31 @@ def get_buff_market_price(market_hash_name, logger):
     if not cookies:
         raise Exception("Buff cookies not found in Redis")
     
-    base_url = "https://buff.163.com/api/market/goods"
+    base_url = "http://buff.163.com/api/market/goods"
     url = base_url + f"?game=csgo&page_num=1&search=" + quote(market_hash_name)
 
     resp = requests.get(url, headers=HEADERS, cookies=cookies)
     resp.raise_for_status()
-
-    data = resp.json()
-    logger.info(str(data))
-    processed_data = {}
-    if "data" not in data or not data["data"]["items"]:
-        logger.info(f"Fetching {market_hash_name} from BUFF return None")
-        return None, data
+    
+    if (resp.status_code != 200):
+        logger.info(f"Fetching {market_hash_name} from BUFF failed")
     else:
-        items = data["data"].get("items",[])
-        for item in items:
-            if item.get("market_hash_name")==market_hash_name:
-                processed_data[market_hash_name] = {
-                    "lowest_price": item.get("sell_min_price"),
-                    "median_price": item.get("quick_price"),
-                    "volume": str(item.get("sell_num", 0))
-                }
-        logger.info(f"Finish fetching {market_hash_name} from BUFF")
-        return processed_data, data
+        data = resp.json()
+        processed_data = {}
+        if not data:
+            logger.info(f"Buff return no Data")
+            return None, data
+        elif not data.get("data") or not data["data"].get("items"):
+            logger.info(f"Fetching {market_hash_name} from BUFF return None")
+            return None, data
+        else:
+            items = data["data"].get("items")
+            for item in items:
+                if item.get("market_hash_name")==market_hash_name:
+                    processed_data[market_hash_name] = {
+                        "lowest_price": item.get("sell_min_price",0),
+                        "median_price": item.get("quick_price",0),
+                        "volume": str(item.get("sell_num", 0).replace(",", ""))
+                    }
+            logger.info(f"Finish fetching {market_hash_name} from BUFF")
+            return processed_data, data

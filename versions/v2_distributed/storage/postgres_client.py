@@ -43,12 +43,14 @@ def insert_price_snapshot(
     buff_median=None,
     buff_volume=None
 ):
-
-    conn = get_connection()
-
+    conn = None
     try:
-        with conn.cursor() as cur:
+        conn = get_connection()
 
+        if conn.closed != 0:
+            conn = get_connection()
+
+        with conn.cursor() as cur:
             cur.execute("""
                 INSERT INTO item_price_snapshots (
                     market_hash_name,
@@ -72,7 +74,11 @@ def insert_price_snapshot(
 
         conn.commit()
 
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        raise
+
     finally:
-        release_connection(conn)
-def close_pool():
-    pool.closeall()
+        if conn:
+            release_connection(conn)

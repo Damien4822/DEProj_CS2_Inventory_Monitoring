@@ -39,7 +39,8 @@ def get_db():
     return _db
 
 def get_collection(name: str):
-    return _db[name]
+    db = get_db()
+    return db
 
 
 def insert_document(collection: str, data: dict):

@@ -26,8 +26,8 @@ def get_steam_market_price(market_hash_name, logger):
         return None
 
     prices = {
-        "lowest_price": data.get("lowest_price","").replace("$",""),
-        "median_price": data.get("median_price","").replace("$",""),
+        "lowest_price": round(data.get("lowest_price","").replace("$",""),2),
+        "median_price": round(data.get("median_price","").replace("$",""),2),
         "volume": data.get("volume","")
     }
     logger.info(f"Finish fetching {market_hash_name} from STEAM")

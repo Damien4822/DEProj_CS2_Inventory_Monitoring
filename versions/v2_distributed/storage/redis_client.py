@@ -44,8 +44,9 @@ def save_cookies(site: str, cookies: list):
 
 
 def get_cookies(site: str):
+    client = get_redis_client()
     key = f"cookies:{site}"
-    data = redis_client.get(key)
+    data = client.get(key)
     if not data:
         return None
 

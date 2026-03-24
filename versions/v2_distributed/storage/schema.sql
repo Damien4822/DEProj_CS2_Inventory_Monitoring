@@ -1,15 +1,5 @@
 -- storage/schema.sql
 
-
--- =========================
--- Items table
--- =========================
-CREATE TABLE IF NOT EXISTS items (
-    market_hash_name TEXT PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
-
 -- =========================
 -- Price snapshot table
 -- =========================
