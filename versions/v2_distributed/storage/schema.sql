@@ -18,12 +18,7 @@ CREATE TABLE IF NOT EXISTS item_price_snapshots (
     buff_median_price NUMERIC(12,2),
     buff_volume INTEGER,
 
-    PRIMARY KEY (market_hash_name, snapshot_time),
-
-    CONSTRAINT fk_item
-        FOREIGN KEY (market_hash_name)
-        REFERENCES items(market_hash_name)
-        ON DELETE CASCADE
+    PRIMARY KEY (market_hash_name, snapshot_time)
 );
 
 

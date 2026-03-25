@@ -24,11 +24,12 @@ def get_steam_market_price(market_hash_name, logger):
 
     if not data.get("success"):
         return None
-
+    
     prices = {
-        "lowest_price": round(data.get("lowest_price","").replace("$",""),2),
-        "median_price": round(data.get("median_price","").replace("$",""),2),
-        "volume": data.get("volume","")
+        "lowest_price": float(str(data.get("lowest_price",0)).replace("$","")),
+        "median_price": float(str(data.get("median_price",0)).replace("$","")),
+        "volume": int(str(data.get("volume", 0)).replace(",", ""))
     }
+
     logger.info(f"Finish fetching {market_hash_name} from STEAM")
     return prices, data

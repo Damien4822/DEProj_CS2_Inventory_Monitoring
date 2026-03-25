@@ -70,4 +70,4 @@ def process_item(item: dict, logger):
             buff_volume=buff.get("volume"),
         )
     except Exception as e:
-        logger.info(f"Error saving raw to mongodb: {e}\n{traceback.format_exc()}")
+        logger.info(f"Error saving schenma to postgres: {e}\n{traceback.format_exc()}")

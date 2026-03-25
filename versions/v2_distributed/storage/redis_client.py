@@ -2,8 +2,8 @@ import redis
 import json
 import os
 import time
-REDIS_HOST = os.getenv("REDIS_HOST", "redis")
-REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = int(os.getenv("REDIS_PORT"))
 
 MAX_RETRIES = 5
 RETRY_DELAY = 20

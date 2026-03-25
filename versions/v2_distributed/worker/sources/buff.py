@@ -47,7 +47,7 @@ def get_buff_market_price(market_hash_name, logger):
                     processed_data[market_hash_name] = {
                         "lowest_price": item.get("sell_min_price",0),
                         "median_price": item.get("quick_price",0),
-                        "volume": str(item.get("sell_num", 0).replace(",", ""))
+                        "volume": item.get("sell_num", 0)
                     }
             logger.info(f"Finish fetching {market_hash_name} from BUFF")
             return processed_data, data

@@ -2,8 +2,8 @@ import os
 import time
 from pymongo import MongoClient, errors
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://mongo:27017")
-MONGO_DB = os.getenv("MONGO_DB", "app")
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB = os.getenv("MONGO_DB")
 
 MAX_RETRIES = 5
 RETRY_DELAY = 20
@@ -40,7 +40,7 @@ def get_db():
 
 def get_collection(name: str):
     db = get_db()
-    return db
+    return db[name]
 
 
 def insert_document(collection: str, data: dict):
