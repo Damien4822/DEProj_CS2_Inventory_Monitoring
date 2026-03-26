@@ -31,8 +31,8 @@ Authentication workflows are automated using Playwright, which handles browser-b
 
 ## Repository Structure
 
-- `airflow/` – Airflow runtime DAG wrappers
-- `versions/` – Versioned implementations (V1 prototype, V2 refactored architecture)
+- `airflow/` – Contain local configuration files.
+- `versions/` – Versioned implem.entations (V1 prototype, V2 refactored architecture)
 
 Each version documents architectural decisions and design evolution separately. Please navigate to each version's README.md for better explaination of each approach.
 

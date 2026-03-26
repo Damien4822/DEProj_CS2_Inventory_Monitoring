@@ -1,75 +1,38 @@
-# Airflow Orchestration
+# Airflow (Local Development Environment)
 
-This directory contains the **Apache Airflow orchestration layer** for the project.
+This directory contains the **Apache Airflow setup used for local development and testing.**
 
-Airflow is responsible for:
+Unlike earlier versions of the project, this folder no longer contains active pipeline orchestration logic or production DAG implementations.
 
-* Scheduling pipeline execution
-* Managing task dependencies
-* Controlling parallel execution
-* Monitoring pipeline runs through the web interface
-
-The pipeline logic itself is stored separately under the `versions/` directory and imported by the DAGs.
-
+Instead, it serves as a lightweight environment for:
+* Running Airflow locally
+* Testing configurations
+* Experimenting with DAG behavior (if needed)
+* Managing Airflow services during development
+Current Structure
 ---
 
 # Directory Structure
 
 ```
-airflow
-│
-├── dags/
-│   └── versions/
-│       ├── v1/
-│       └── v2/
-│
-├── requirements.txt
+airflow/ 
+│ 
+├── dags/ # (Optional) Placeholder for local or experimental DAGs ├── requirements.txt # Dependencies for the Airflow environment 
+├── config-files #local configuration files.
 └── README.md
 ```
+Note: Current pipeline logic and versioned implementations are under `versions/` directory.
 
-### `dags/`
+# Purpose
+This directory is intentionally minimal and is not responsible for executing project pipelines.
 
-Contains Airflow DAG definitions.
+Its role is limited to:
 
-Each DAG corresponds to a pipeline version and imports logic from the `versions/` directory.
-
-Example structure:
-
-```
-dags/
-└── versions/
-    ├── v1/
-    │   └── cs2_market_etl.py
-    │
-    └── v2/
-        └── inventory_pipeline.py
-```
-
-These DAGs act as **thin orchestration layers**, delegating most processing logic to the pipeline modules.
-
----
-
-### `requirements.txt`
-
-Defines the dependencies required to run the Airflow environment.
-
-Typical dependencies include:
-
-* `apache-airflow`
-* shared utilities used by DAGs
-* client libraries for services such as Redis, RabbitMQ, or MongoDB (if DAG tasks interact with them)
-
-Pipeline-specific dependencies are defined separately in:
-
-```
-versions/v1/requirements.txt
-versions/v2/requirements.txt
-```
-
----
+- Providing a local Airflow instance
+- Supporting development workflows
+- Allowing optional DAG experimentation without affecting core project logic
 
 # Running Airflow Locally
-
 ## 1. Create a Virtual Environment
 
 ```bash
@@ -129,51 +92,16 @@ The web interface will be available at:
 ```
 http://localhost:8080
 ```
-
----
-
-# DAG Design
-
-The DAGs in this directory are intentionally **minimal**.
-
-Their main responsibilities are:
-
-* defining task dependencies
-* configuring retries and scheduling
-* limiting parallel execution
-
-Example constraints used in pipelines:
-
-* `max_active_runs`
-* `max_active_tasks`
-
-These settings help prevent:
-
-* API rate limiting
-* excessive parallel requests
-* resource contention
-
----
-
-# Pipeline Integration
-
-DAGs import pipeline logic from the `versions/` directory.
-
-Example:
-
-```python
-from versions.v2.pipelines.inventory_fetch import run_pipeline
-```
-
-This separation keeps:
-
-* orchestration logic inside `airflow/`
-* pipeline implementation inside `versions/`
-
 ---
 
 # Notes
+- This setup is intended for local development only
+- No DAGs are maintained in this directory
+- Pipeline orchestration, if reintroduced, should be documented separately
+- The dags/ folder can be used for temporary or experimental workflows
 
-* Pipelines are intended to be executed **through Airflow DAGs**, not directly.
-* Each pipeline version maintains its own dependencies and documentation.
-* Airflow serves as the central scheduling and monitoring system for the project.
+
+# History
+Earlier versions of the project used this directory as a full orchestration layer, with DAGs importing pipeline logic from `versions/` directory.
+
+This approach has since been removed in favor of a simpler development-focused setup.

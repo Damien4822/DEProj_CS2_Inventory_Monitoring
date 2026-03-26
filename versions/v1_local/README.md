@@ -24,7 +24,7 @@ V1 follows a monolithic DAG design:
 - Configuration values (e.g., paths, constants) are defined within the DAG.
 - Authentication for certain endpoints is handled using Playwright to automate login and retrieve session cookies.
 
-The pipeline is orchestrated using Apache Airflow with scheduled execution and task dependency management.
+The pipeline is orchestrated using Apache Airflow with scheduled execution and task dependency management. V1 was originally implemented as an Airflow DAG. In the current layout, this DAG has been adapted to run locally while preserving its original structure.
 
 ---
 
@@ -40,8 +40,22 @@ This version was built as a prototype in order to:
 ---
 
 ## Installation (V1)
-
 This version was developed and tested in a local Linux environment.
+## Note
+Originally, the `airflow` folder will have dags defined under `pipeline` imported. This approach can be confusing, so it have been updated.
+
+The current layout of `version/v1_local` now represents a complete V1 layout.
+
+For new installation, user should create Python Virtual Environment (venv) installed right under `v1_local/`
+
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+The `pipelines/` directory contains the original DAG implementation.
+For Airflow to detect the workflow, rename this folder to `dags/`.
+
+Then follow the instruction as below:
 
 ### 1. Install Dependencies
 Install the required packages:
@@ -54,20 +68,21 @@ Install the required browser binaries:
 playwright install
 ```
 
+## 3. Initialize the Airflow Database
+
+```bash
+airflow db migrate
+```
+## 4. Run airflow on standalone (for local deployment only)
+```bash
+airflow standalone
+```
+Airflow will pickup dags defined on `dags/` (renamed from current `pipelines`).
 ###  Execution Model
 
-In the current repository structure, this pipeline is executed through Apache Airflow DAGs, located in:
+In the original repository structure, this pipeline is executed through Apache Airflow DAGs, located in `airflow/dags/v1`
 
-```
-airflow/dags/versions/v1/
-```
-
-Airflow DAGs will import the pipeline logic from
-```
-versions/v1/
-```
-
-Running the pipeline directly is *not recommended*, as scheduling and task orchestration are handled by Airflow.
+This version can be executed directly as a local script, with Airflow installed directly on `version/v1_local/`, using a Virtual Enviroment
 
 ###  DAG Configuration
 The DAG limits parallel execution using the following parameters:
