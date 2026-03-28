@@ -16,5 +16,3 @@ versions/v1_local/output/
 versions/v1_local/output/*
 #Ignore local config of v2
 versions/v2_distributed/infra/.env
-versions/v2_distributed/worker/logs
-versions/v2_distributed/worker/logs/*
