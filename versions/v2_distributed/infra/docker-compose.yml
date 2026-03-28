@@ -1,8 +1,64 @@
+version: "3.8"
+
 networks:
   cs2-network:
     name: cs2-network
     driver: bridge
+
+volumes:
+  rabbitmq_data:
+  redis_data:
+  postgres_data:
+  mongo_data:
+  airflow_postgres_data:
+
+# -----------------------
+# Shared Airflow Config
+# -----------------------
+x-airflow-common: &airflow-common
+  build:
+    context: ..
+    dockerfile: ../v2_distributed/docker/infra.Dockerfile
+  env_file:
+    - ./.env
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+
+    # Airflow metadata DB
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+
+    # Use YOUR RabbitMQ
+    AIRFLOW__CELERY__BROKER_URL: pyamqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672//
+
+    # Result backend
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-postgres/airflow
+
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__FERNET_KEY: ""
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+
+    PYTHONPATH: /opt
+    AIRFLOW_HOME: /opt/airflow
+
+  volumes:
+    - ../../../airflow/dags:/opt/airflow/dags:z
+    - ../../../versions:/opt/versions:z
+    - ../../../versions/v2_distributed/pipelines:/opt/airflow/dags/:z
+    
+
+  depends_on:
+    - rabbitmq
+    - airflow-postgres
+
+  networks:
+    - cs2-network
+
+# -----------------------
+# Services
+# -----------------------
 services:
+
+  # -------- RabbitMQ --------
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -11,14 +67,12 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     env_file:
       - ./.env
     networks:
       - cs2-network
 
+  # -------- Redis (for your app) --------
   redis:
     image: redis:7
     container_name: redis
@@ -26,28 +80,26 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    env_file:
-      - ./.env
     networks:
       - cs2-network
 
+  # -------- App Postgres --------
   postgres:
     image: postgres:15
     container_name: postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}   # your main DB
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../storage/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-    env_file:
-      - ./.env
     networks:
       - cs2-network
 
+  # -------- Mongo --------
   mongo:
     image: mongo:6
     container_name: mongo
@@ -55,50 +107,61 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
-    env_file:
-      - ./.env
     networks:
       - cs2-network
 
-  airflow:
-    build:
-      context: ..
-      dockerfile: ../v2_distributed/docker/infra.Dockerfile
-    container_name: airflow
-    depends_on:
-      - redis
-      - rabbitmq
-      - postgres
-      - mongo
+  # -------- Airflow Postgres (separate!) --------
+  airflow-postgres:
+    image: postgres:15
+    container_name: airflow-postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow_postgres_data:/var/lib/postgresql/data
+    networks:
+      - cs2-network
+
+  # -------- Airflow Init --------
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    environment:
+      <<: *airflow-env
+      _AIRFLOW_DB_MIGRATE: 'true'
+    command: db migrate
+
+  # -------- Web UI --------
+  airflow-apiserver:
+    <<: *airflow-common
+    container_name: airflow-apiserver
+    command: api-server
     ports:
       - "8080:8080"
-    volumes:
-      - ../../../airflow/dags:/opt/airflow/dags
-      - ../../../airflow/logs:/opt/airflow/logs
-      - ../../../airflow/plugins:/opt/airflow/plugins
-      - ../../../airflow/simple_auth_manager_passwords.json.generated:/opt/airflow/simple_auth_manager_passwords.json.generated
-      - ../../../versions:/opt/versions
-      - ../../../versions/v2_distributed/pipelines:/opt/airflow/dags/v2
-    environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-      PYTHONPATH: /opt
-      AIRFLOW_HOME: /opt/airflow
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
-      AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
-    command: >
-     bash -c "
-      airflow standalone &
-      sleep 15 &&
-      airflow pools set critical_pool 5 'Critical tasks pool' &&
-      wait"
-    env_file:
-      - ./.env
-    networks:
-      - cs2-network
+    depends_on:
+      - airflow-init
 
-volumes:
-  rabbitmq_data:
-  redis_data:
-  postgres_data:
-  mongo_data:
+  # -------- Scheduler --------
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow-scheduler
+    command: scheduler
+    depends_on:
+      - airflow-init
+
+  # -------- Workers --------
+  airflow-worker:
+    <<: *airflow-common
+    container_name: airflow-worker
+    command: celery worker
+    depends_on:
+      - airflow-init
+
+  # -------- Triggerer --------
+  airflow-triggerer:
+    <<: *airflow-common
+    container_name: airflow-triggerer
+    command: triggerer
+    depends_on:
+      - airflow-init

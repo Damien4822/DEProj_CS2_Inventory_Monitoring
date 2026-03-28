@@ -17,7 +17,8 @@ Current Structure
 ```
 airflow/ 
 │ 
-├── dags/ # (Optional) Placeholder for local or experimental DAGs ├── requirements.txt # Dependencies for the Airflow environment 
+├── dags/ # (Optional) Placeholder for local or experimental DAGs 
+├── requirements.txt # Dependencies for the Airflow environment 
 ├── config-files #local configuration files.
 └── README.md
 ```
