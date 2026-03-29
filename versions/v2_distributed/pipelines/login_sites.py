@@ -17,7 +17,7 @@ default_args={
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
-    "pool": "critical_pool",
+    "pool": "default_pool",
     'retry_delay': timedelta(minutes=5),
 }
 async def login_all_sites_async():

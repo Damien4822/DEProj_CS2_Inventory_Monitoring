@@ -36,15 +36,13 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__CORE__FERNET_KEY: ""
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
-
+    AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+    AIRFLOW__CORE__PARALLELISM=8
+    AIRFLOW__CELERY__WORKER_CONCURRENCY=2
     PYTHONPATH: /opt
     AIRFLOW_HOME: /opt/airflow
 
-  volumes:
-    - ../../../airflow/dags:/opt/airflow/dags:z
-    - ../../../versions:/opt/versions:z
-    - ../../../versions/v2_distributed/pipelines:/opt/airflow/dags/:z
-    
+  volumes: []
 
   depends_on:
     - rabbitmq
@@ -139,6 +137,8 @@ services:
     command: api-server
     ports:
       - "8080:8080"
+    environment:
+      AIRFLOW__CORE__BASE_URL: http://airflow-apiserver:8080
     depends_on:
       - airflow-init
 
@@ -165,3 +165,11 @@ services:
     command: triggerer
     depends_on:
       - airflow-init
+  # -------- Processor --------
+  airflow-dag-processor:
+    <<: *airflow-common
+    container_name: airflow-dag-processor
+    command: dag-processor
+    depends_on:
+      - airflow-init
+    restart: always
