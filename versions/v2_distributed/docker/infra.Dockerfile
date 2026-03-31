@@ -13,7 +13,10 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
     
 COPY requirements.txt /requirements.txt
-
+RUN mkdir -p /opt/airflow/logs \
+    /opt/airflow/plugins \
+    /opt/airflow/dags \
+    && chown -R airflow:root /opt/airflow
 USER airflow
 RUN pip install --no-cache-dir -r /requirements.txt
 RUN pip install playwright
@@ -21,7 +24,6 @@ RUN pip install pyvirtualdisplay
 RUN playwright install chromium
 
 COPY --chown=airflow:root simple_auth_manager_passwords.json.generated /opt/airflow/simple_auth_manager_passwords.json.generated
-
 COPY --chown=airflow:root /pipelines/ /opt/airflow/dags/v2/
 COPY --chown=airflow:root /rabbitMQ/ /opt/versions/v2_distributed/rabbitMQ/
 COPY --chown=airflow:root /storage/ /opt/versions/v2_distributed/storage/
