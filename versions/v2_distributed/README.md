@@ -37,15 +37,15 @@ V2 adopts a distributed components approach:
 |            |(items)       |                         |                      |   
 |            |              |                         |                      |
 |  +--------------------+   |                         |  +----------------+  |
-|  |   Login DAG        |   |                         |  |    Worker      |  |
+|  | Item fetching DAG  |   |                         |  |    Worker      |  |
 |  +--------------------+   |                         |  |   Instances    |  |
 |                           |                         |  |                |  |
 |                           |                         |  +----------------+  |
 |  +---------------------+  |                         |  +----------------+  |
-|  |   Item-fetching DAG |  |                         |  |   Worker       |  |
+|  |   Login Dag         |  |                         |  |   Worker       |  |
 |  +----------+----------+  |                         |  |   Instances    |  |
 |             |             |                         |  |                |  |
-|             | items       |                         |  +--------+-------+  |
+|             | (cookies)   |                         |  +--------+-------+  |
 |             |             |                         |                      |
 |             |             |                         |                      |
 |             |             |                         |                      |
