@@ -12,7 +12,5 @@ services:
     env_file:
       - ../infra/.env
     restart: unless-stopped
-    volumes:
-      - ./logs:/app/worker/logs
     networks:
       - cs2-network

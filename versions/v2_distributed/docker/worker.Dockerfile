@@ -11,5 +11,9 @@ COPY rabbitMQ ./rabbitMQ
 COPY storage ./storage
 
 ENV PYTHONPATH=/app
+RUN mkdir -p /app/worker/logs
 
-CMD ["python", "-m", "worker.worker"]
+RUN chmod +x wait-for-infra.sh
+
+# Run the wait script first, then start the worker
+CMD ["./wait-for-infra.sh"]
