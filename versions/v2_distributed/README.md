@@ -73,6 +73,8 @@ Responsible for:
 - Perform UI Automation for login and storing authentication cookies.
 - Enqueuing inventory items into the message queue
 
+Note: for new infra-setup, Airflow now being distributed with multiple components (apiserver, scheduler, worker, triggerer, dag-processor) with CeleryExecutor.
+
 ### Workers (Execution Layer)
 Stateless processing units that:
 - Consume tasks from RabbitMQ
@@ -87,14 +89,26 @@ Workers are horizontally scalable and can be replicated as needed
 - MongoDB: stores raw API responses
 - Redis: stores session data (e.g., authentication cookies)
 
+Note: for new infra-setup, PostgresSQL are having 2 instances of `postgres` and `airflow-postgres`:
+- `postgres` still function as stated above.
+- `airflow-postgres` stores Airflow's metadata infos.
+
 ### Message Broker - RabbitMQ
-Decouples task producers and consumers
-Enables asynchronous processing and retry mechanisms
+- Decouples task producers and consumers
+- Enables asynchronous processing and retry mechanisms
+
+Note: for new infra-setup, rabbitMQ is now containing channels for CeleryExecutor.
 
 ### Container Orchestration - Docker Compose
-- Manages service deployment
-- Provides internal networking and service discovery
-- Simplifies local development and testing
+- Manages service deployment.
+- Provides internal networking and service discovery.
+- Simplifies local development and testing.
+
+Note: 
+- For new infra-setup, Airflow components are now being distributed with healthcheck, dependencies condition, separated volumes with the same network configuration.
+- Dedicated Postgres container for Airflow (`airflow-postgres`) keeps metadata isolated.
+- Redis remains shared for app cookies only.
+- RabbitMQ now handles both CeleryExecutor and custom task queues.
 ---
 
 ## Design Decisions
@@ -103,9 +117,9 @@ This version was built as a prototype to validate key architectural concepts:
 - Task Distribution using rabbitMQ.
 - Externalized state management with redis.
 - Separation of orchestration, execution, and storage layers.
-- Parallel data fetching via distributed workers
+- Parallel data fetching via distributed workers.
 - Dual-storage strategy: PostgreSQL for structured data; MongoDB for raw responses.
-- Containerized deployment using Docker Compose
+- Containerized deployment using Docker Compose.
 ---
 
 ## Installation (V2)
@@ -123,10 +137,15 @@ docker compose up -d
 
 ### 2. Deploy workers
 Navigate to v2_distributed/worker/
+
 ```bash
 cd v2_distributed/worker
 docker compose build
 docker compose up -d
+```
+or if u want to deploy with replicates:
+```
+docker compose up -d --scale fetching-worker=3
 ```
 
 ## Improvements and Limitations
@@ -140,23 +159,21 @@ Orchestration, task distribution, execution, and storage are fully decoupled, en
 Tasks are distributed via RabbitMQ and consumed by workers, enabling horizontal scalability.
 
 #### 3. Parallel Data Fetching (Fan-Out Pattern)
-Each worker performs multiple external API calls per item (e.g., Steam Market, BUFF163), improving throughput.
-
-While the scalability of components achieved, the issue of Rate-limiting still exists, due to the current network setup. This issued motivated for implementation of V3, where the whole systems will be deployed onto Cloud Services. While the infra-components can be deployed and used internally, worker can still having benefited from these services's public IP, which avoid hitting rate-limit policies from these sources.
+Each worker performs multiple external API calls per item (e.g., Steam Market, BUFF163), improving throughput. Workers can be replicated into multiple instances, increasing data-ingestion effeciency and throughput.
 
 ### Limitations:
 Despite architectural improvements, some constraints remain:
 
 #### Rate Limiting: 
-External APIs still enforce request limits, which are amplified when scaling workers.
+External APIs still enforce request limits, which are amplified when scaling workers. High parallelism increases the likelihood of hitting API limits or receiving temporary bans.
 
 #### Network Constraints
-Running locally means all requests originate from a limited set of IP addresses
+Running locally means all requests originate from a limited set of IP addresses. While scaling workers improves throughput, it also increases the risk of rate-limiting or temporary IP blocks from source platforms.
 
 These limitations motivated the design of V3, where:
-- Infrastructure remains centralized
-- Workers are deployed in cloud environments
-- Public IP distribution reduces rate-limit bottlenecks
+- Core infrastructure remains centralized.
+- Workers are deployed in cloud environments with distributed public IPs
+- Public IP distribution helps reduce rate-limit bottlenecks and ensures more reliable external API access.
 ---
 
 ## Output Artifacts
