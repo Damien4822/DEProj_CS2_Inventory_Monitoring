@@ -145,7 +145,7 @@ docker compose up -d
 ```
 or if u want to deploy with replicates:
 ```
-docker compose up -d --scale fetching-worker=3
+docker compose up -d --scale worker=3
 ```
 
 ## Improvements and Limitations
