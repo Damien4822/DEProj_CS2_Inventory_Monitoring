@@ -42,7 +42,7 @@ V2 adopts a distributed components approach:
 |                           |                         |  |                |  |
 |                           |                         |  +----------------+  |
 |  +---------------------+  |                         |  +----------------+  |
-|  |   Login Dag         |  |                         |  |   Worker       |  |
+|  |   Login DAG         |  |                         |  |   Worker       |  |
 |  +----------+----------+  |                         |  |   Instances    |  |
 |             |             |                         |  |                |  |
 |             | (cookies)   |                         |  +--------+-------+  |
@@ -69,7 +69,6 @@ V2 adopts a distributed components approach:
 ## Key Components
 ### Airflow (Orchestration Layer)
 Responsible for:
-
 - Generating and enqueueing tasks (e.g., inventory items) 
 - Perform UI Automation for login and storing authentication cookies.
 - Enqueuing inventory items into the message queue
@@ -77,15 +76,16 @@ Responsible for:
 ### Workers (Execution Layer)
 Stateless processing units that:
 - Consume tasks from RabbitMQ
+- Retrieve authentication cookies from Redis
 - Fetch market data (Steam, BUFF163)
 - Transform and normalized responses
-- Store results
+- Store results to MongoDB and PostgresSQL
 Workers are horizontally scalable and can be replicated as needed
 
 ### Data Storage
 - PostgreSQL: stores structured data such as normalized price snapshots
 - MongoDB: stores raw API responses
-- Redis: stores session data (e.g., authentication cookies) and lightweight cache
+- Redis: stores session data (e.g., authentication cookies)
 
 ### Message Broker - RabbitMQ
 Decouples task producers and consumers
