@@ -4,7 +4,6 @@ import requests
 from airflow.sdk import DAG
 from airflow.decorators import task
 from airflow.utils.log.logging_mixin import LoggingMixin
-from versions.v2_distributed.rabbitMQ.rabbitmq_client import RabbitMQClient
 import os
 HEADERS = {
     "User-Agent": (
@@ -104,24 +103,32 @@ with DAG(
             print("No items found in inventory.")
             return []
         
+        seen = set()
         cleaned_items = []
         for item in items:
-            
             assetid = item.get("assetid")
             market_hash_name = item.get("market_hash_name")
             name = item.get("name")
+
             if not assetid or not market_hash_name:
                 continue
+
+            if market_hash_name in seen:
+                continue
+
+            seen.add(market_hash_name)
 
             cleaned_items.append({
                 "assetid": assetid,
                 "market_hash_name": market_hash_name,
                 "name": name
-                })
+            })
+
         return cleaned_items
     
     @task
     def publish_to_queue(items: list):
+        from versions.v2_distributed.rabbitMQ.rabbitmq_client import RabbitMQClient
         if not items:
             print("No items to publish.")
             return

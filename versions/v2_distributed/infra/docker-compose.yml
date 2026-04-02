@@ -16,7 +16,7 @@ volumes:
 x-airflow-common: &airflow-common
   build:
     context: ..
-    dockerfile: ../v2_distributed/docker/infra.Dockerfile
+    dockerfile: ../v2_distributed/docker/infra-base.Dockerfile
   env_file:
     - ./.env
   environment: &airflow-env
@@ -197,12 +197,15 @@ services:
   # -------- Workers --------
   airflow-worker:
     <<: *airflow-common
+    build:
+      context: ..
+      dockerfile: ../v2_distributed/docker/infra-worker.Dockerfile
     container_name: airflow-worker
     command: celery worker
     environment: 
       <<: *airflow-env
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
-      AIRFLOW__CELERY__WORKER_CONCURRENCY: 1  # <== only 1 task at a time
+      AIRFLOW__CELERY__WORKER_CONCURRENCY: 1  # only 1 task at a time
     healthcheck:
       # yamllint disable rule:line-length
       test: ["CMD-SHELL", 'celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}" || celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"']

@@ -1,11 +1,7 @@
 from datetime import datetime,timedelta
 from airflow.sdk import DAG
 from airflow.decorators import task
-from playwright.async_api import async_playwright
-import asyncio
 from airflow.utils.log.logging_mixin import LoggingMixin
-from pyvirtualdisplay import Display
-from versions.v2_distributed.storage.redis_client import save_cookies
 import os
 
 logger = LoggingMixin().log
@@ -21,6 +17,10 @@ default_args={
     'retry_delay': timedelta(minutes=5),
 }
 async def login_all_sites_async():
+    from playwright.async_api import async_playwright
+    from pyvirtualdisplay import Display
+    from versions.v2_distributed.storage.redis_client import save_cookies
+    
     display = Display(visible=1, size=(1920, 1080),backend="xvfb")
     display.start()
     async with async_playwright() as p:
@@ -88,6 +88,8 @@ async def login_buff(browser, username:str, password:str):
 
 @task
 def login_all_sites():
+    import asyncio
+
     asyncio.run(login_all_sites_async())
 
 

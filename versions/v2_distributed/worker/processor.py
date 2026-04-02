@@ -71,3 +71,4 @@ def process_item(item: dict, logger):
         )
     except Exception as e:
         logger.info(f"Error saving schenma to postgres: {e}\n{traceback.format_exc()}")
+    time.sleep(random.uniform(3, 5))
