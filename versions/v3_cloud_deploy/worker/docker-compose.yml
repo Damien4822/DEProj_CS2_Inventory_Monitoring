@@ -1,0 +1,16 @@
+version: "3.11"
+networks:
+  cs2-network:
+    external: true
+services:
+  worker:
+    container_name: worker
+    build:
+      context: ..
+      dockerfile: ./docker/worker.Dockerfile
+
+    env_file:
+      - ../infra/.env
+    restart: unless-stopped
+    networks:
+      - cs2-network
