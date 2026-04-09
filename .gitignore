@@ -19,3 +19,9 @@ versions/v2_distributed/infra/.env
 versions/v2_distributed/worker/logs
 versions/v2_distributed/worker/logs/*
 versions/v2_distributed/simple_auth_manager_passwords.json.generated
+
+#Ignore local config of v2
+versions/v3_cloud_deploy/infra/.env
+versions/v3_cloud_deploy/worker/logs
+versions/v3_cloud_deploy/worker/logs/*
+versions/v3_cloud_deploy/simple_auth_manager_passwords.json.generated
