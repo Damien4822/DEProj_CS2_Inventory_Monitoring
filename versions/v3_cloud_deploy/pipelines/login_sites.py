@@ -70,6 +70,7 @@ async def login_buff(browser, username:str, password:str):
 
     # Click the sign-in button to login buff
     final_login_form = popup.locator("form#openidForm")
+    final_login_form.wait_for(state="visible", timeout=30000)
     sign_in_button = final_login_form.locator("input[type='submit']", has_text="Sign In")
 
     # Wait for it to be visible and click
