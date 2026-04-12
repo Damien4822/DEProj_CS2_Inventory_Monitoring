@@ -21,7 +21,7 @@ USER airflow
 RUN pip install --no-cache-dir -r /requirements.txt
 RUN pip install playwright
 RUN pip install pyvirtualdisplay
-RUN playwright install chromium
+RUN playwright install --with-deps chromium
 
 COPY --chown=airflow:root simple_auth_manager_passwords.json.generated /opt/airflow/simple_auth_manager_passwords.json.generated
 COPY --chown=airflow:root /pipelines/ /opt/airflow/dags/v3/
