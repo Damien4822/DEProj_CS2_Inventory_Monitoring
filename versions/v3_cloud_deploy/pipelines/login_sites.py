@@ -108,7 +108,7 @@ with DAG(
     max_active_runs=1,
     start_date=datetime(2025, 10, 1),
     catchup=False,
-    tags=['login', 'playwright','3'],
+    tags=['login', 'playwright','v3'],
 ) as dag:
     
     login_all_sites()
