@@ -92,7 +92,7 @@ with DAG(
     catchup=False,
     max_active_runs=2,
     max_active_tasks=4,
-    tags=['cs2', 'inventory-fetching', 'v2'],
+    tags=['cs2', 'inventory-fetching', 'v3'],
 ) as dag:
     
     @task

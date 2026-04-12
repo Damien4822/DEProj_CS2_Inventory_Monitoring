@@ -24,6 +24,6 @@ RUN pip install pyvirtualdisplay
 RUN playwright install chromium
 
 COPY --chown=airflow:root simple_auth_manager_passwords.json.generated /opt/airflow/simple_auth_manager_passwords.json.generated
-COPY --chown=airflow:root /pipelines/ /opt/airflow/dags/v2/
+COPY --chown=airflow:root /pipelines/ /opt/airflow/dags/v3/
 COPY --chown=airflow:root /rabbitMQ/ /opt/versions/v3_cloud_deploy/rabbitMQ/
 COPY --chown=airflow:root /storage/ /opt/versions/v3_cloud_deploy/storage/
