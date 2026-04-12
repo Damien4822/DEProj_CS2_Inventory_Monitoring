@@ -23,19 +23,21 @@ async def login_all_sites_async():
     
     display = Display(visible=1, size=(1920, 1080),backend="xvfb")
     display.start()
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless = False,
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-            ],)
-        
-        logger.info("Start logging-in buff")
-        buff_cookies = await login_buff(browser,username,password)
-        logger.info("Saving buff's cookies")
-        save_cookies("buff",buff_cookies)
-        await browser.close()
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless = False,
+                args=[
+                    "--disable-blink-features=AutomationControlled",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                ],)
+            
+            logger.info("Start logging-in buff")
+            buff_cookies = await login_buff(browser,username,password)
+            logger.info("Saving buff's cookies")
+            save_cookies("buff",buff_cookies)
+            await browser.close()
+    finally:
         display.stop()
 
 async def login_buff(browser, username:str, password:str):
@@ -59,9 +61,9 @@ async def login_buff(browser, username:str, password:str):
 
     login_section = popup.locator("div.page_content").locator("div[data-featuretarget='login']")
     username_input = login_section.locator("div", has_text="Sign in with account name").locator("input[type='text']")
-    await username_input.is_visible(timeout=30000)
+    await username_input.wait_for(state="visible", timeout=30000)
     password_input = login_section.locator("div", has_text="Password").locator("input[type='password']")
-    await password_input.is_visible(timeout=30000)
+    await password_input.wait_for(state="visible", timeout=30000)
 
     # Fill credentials
     await username_input.fill(username)
@@ -90,19 +92,23 @@ async def login_buff(browser, username:str, password:str):
 @task
 def login_all_sites():
     import asyncio
-
-    asyncio.run(login_all_sites_async())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(login_all_sites_async())
+    finally:
+        loop.close()
 
 
 with DAG(
-    'login_sites_v2',
+    'login_sites_v3',
     default_args=default_args,
     description='Automation for login and get sites\'s cookies ',
     schedule='0 */6 * * *',#setup to run every 6hours 
     max_active_runs=1,
     start_date=datetime(2025, 10, 1),
     catchup=False,
-    tags=['login', 'playwright','v2'],
+    tags=['login', 'playwright','3'],
 ) as dag:
     
     login_all_sites()
