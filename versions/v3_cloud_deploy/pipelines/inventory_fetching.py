@@ -81,6 +81,7 @@ default_args={
     'retries': 1,
     "pool": "default_pool",
     'retry_delay': timedelta(minutes=5),
+    "priority_weight": 5,
 }
 
 with DAG(

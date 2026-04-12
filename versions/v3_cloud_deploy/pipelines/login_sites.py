@@ -15,6 +15,7 @@ default_args={
     'retries': 1,
     "pool": "default_pool",
     'retry_delay': timedelta(minutes=5),
+    "priority_weight": 10
 }
 async def login_all_sites_async():
     from playwright.async_api import async_playwright
