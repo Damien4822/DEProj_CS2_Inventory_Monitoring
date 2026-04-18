@@ -19,14 +19,11 @@ default_args={
 }
 async def login_all_sites_async():
     from playwright.async_api import async_playwright
-    from pyvirtualdisplay import Display
     from versions.v3_cloud_deploy.storage.redis_client import save_cookies
     
-    display = Display(visible=1, size=(1920, 1080),backend="xvfb")
-    display.start()
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless = False,
+            browser = await p.chromium.launch(headless = True,
                 args=[
                     "--disable-blink-features=AutomationControlled",
                     "--no-sandbox",
@@ -37,9 +34,10 @@ async def login_all_sites_async():
             buff_cookies = await login_buff(browser,username,password)
             logger.info("Saving buff's cookies")
             save_cookies("buff",buff_cookies)
+            logger.info("Ended logging-in buff")
             await browser.close()
     finally:
-        display.stop()
+        logger.info("Login all site finished")
 
 async def login_buff(browser, username:str, password:str):
     context = await browser.new_context(
