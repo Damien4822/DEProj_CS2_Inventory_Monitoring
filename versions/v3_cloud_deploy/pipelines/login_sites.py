@@ -34,7 +34,7 @@ with DAG(
         overrides={
             "containerOverrides": [
                 {
-                    "name": "playwright-container",
+                    "name": "login-container",
                     "environment": [
                         {
                             "name": "STEAM_USERNAME",
