@@ -2,6 +2,7 @@ from datetime import datetime,timedelta
 from airflow.sdk import DAG
 from airflow.decorators import task
 from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.providers.amazon.aws.operators.ecs import ECSOperator
 import os
 
 logger = LoggingMixin().log
