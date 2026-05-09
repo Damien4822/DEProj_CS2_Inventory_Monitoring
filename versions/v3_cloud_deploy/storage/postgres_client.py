@@ -1,7 +1,7 @@
 import os
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor,execute_values
 
 POSTGRES_HOST = os.getenv("POSTGRES_HOST")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT"))
@@ -82,3 +82,29 @@ def insert_price_snapshot(
     finally:
         if conn:
             release_connection(conn)
+
+def insert_price_snapshots(rows):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            execute_values(cur, """
+                INSERT INTO item_price_snapshots (
+                    market_hash_name,
+                    steam_price,
+                    steam_median_price,
+                    steam_volume,
+                    buff_price,
+                    buff_median_price,
+                    buff_volume
+                )
+                VALUES %s
+            """, rows)
+
+        conn.commit()
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        release_connection(conn)

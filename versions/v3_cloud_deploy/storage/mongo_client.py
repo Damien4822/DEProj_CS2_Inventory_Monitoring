@@ -48,6 +48,9 @@ def insert_document(collection: str, data: dict):
     result = col.insert_one(data)
     return str(result.inserted_id)
 
+def insert_documents(collection: str, docs: list[dict]):
+    col = get_collection(collection)
+    col.insert_many(docs, ordered=False)
 
 def find_documents(collection: str, query: dict = {}):
     col = get_collection(collection)

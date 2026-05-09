@@ -35,13 +35,38 @@ class RabbitMQClient:
                 if attempt == MAX_RETRIES:
                     raise
                 time.sleep(RETRY_DELAY)
-
+    #old 1 item-per-time attempt
     def consume(self, callback):
         self.channel.basic_qos(prefetch_count=1)
         self.channel.basic_consume(queue=self.queue_name, on_message_callback=callback)
         print(f"[*] Waiting for messages in {self.queue_name}. To exit press CTRL+C")
         self.channel.start_consuming()
-        
+
+    def get_batch(self, batch_size=20):
+        batch = []
+        for _ in range(batch_size):
+            method_frame, properties, body = self.channel.basic_get(
+                queue=self.queue_name,
+                auto_ack=False
+            )
+            if body is None:
+                break
+            batch.append({
+                "delivery_tag": method_frame.delivery_tag,
+                "body": json.loads(body)
+            })
+        return batch
+    def ack(self, delivery_tag):
+        self.channel.basic_ack(
+            delivery_tag=delivery_tag
+        )
+
+    def nack(self, delivery_tag, requeue=True):
+        self.channel.basic_nack(
+            delivery_tag=delivery_tag,
+            requeue=requeue
+        )
+
     def publish(self, message: dict):
         self.channel.basic_publish(
             exchange="",
