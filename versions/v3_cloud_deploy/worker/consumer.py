@@ -12,14 +12,13 @@ def start_consumer(logger):
 
     while True:
         batch = rabbit.get_batch(BATCH_SIZE)
-
+        logger.info(
+                    f"Start fetching. Batch size={len(batch)}."
+                )
         if not batch:
             time.sleep(1)
             continue
 
-        logger.info(
-            f"Fetched batch size={len(batch)}"
-        )
         results = []
         delivery_tags = []
         for msg in batch:
@@ -40,6 +39,9 @@ def start_consumer(logger):
                     requeue=True
                 )
 
+        logger.info(
+            f"Finish fetching."
+        )
     #TRANSFORMING
         rows = []
 

@@ -3,7 +3,7 @@
 echo "[Worker] Waiting for infra services..."
 
 # RabbitMQ
-until nc -z rabbitmq 5672; do
+until nc -z rabbitmq 15672; do
     echo "[Worker] Waiting for RabbitMQ..."
     sleep 2
 done

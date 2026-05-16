@@ -39,6 +39,6 @@ def process_item(item: dict, logger):
     except Exception as e:
         logger.info(f"Buff error: {e}\n{traceback.format_exc()}")
 
-    time.sleep(random.uniform(1, 3))
+    time.sleep(random.uniform(3,5))
 
     return result
