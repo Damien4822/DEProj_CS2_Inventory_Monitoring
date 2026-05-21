@@ -9,19 +9,20 @@ HEADERS = {
         "Chrome/117.0.0.0 Safari/537.36"
     )
 }
+def _get_buff_cookies(retries=5, delay=2):
+    for attempt in range(retries):
+        cookies = get_cookies_dict("buff")
+
+        if cookies:
+            return cookies
+
+        print("[Buff] Redis not ready, retrying...")
+        time.sleep(delay)
+
+    raise Exception("Buff cookies not found in Redis after retries")
 
 def get_buff_market_price(market_hash_name, logger):
-    for attempt in range(5):
-        cookies = get_cookies_dict("buff")
-        if cookies:
-            break
-        print("[Buff] Redis not ready, retrying...")
-        time.sleep(2)
-    else:
-        raise Exception("Buff cookies not found in Redis after retries")
-
-    if not cookies:
-        raise Exception("Buff cookies not found in Redis")
+    cookies = _get_buff_cookies()
     
     base_url = "http://buff.163.com/api/market/goods"
     url = base_url + f"?game=csgo&page_num=1&search=" + quote(market_hash_name)
@@ -33,21 +34,25 @@ def get_buff_market_price(market_hash_name, logger):
         logger.info(f"Fetching {market_hash_name} from BUFF failed")
     else:
         data = resp.json()
-        processed_data = {}
-        if not data:
-            logger.info(f"Buff return no Data")
-            return None, data
-        elif not data.get("data") or not data["data"].get("items"):
-            logger.info(f"Fetching {market_hash_name} from BUFF return None")
-            return None, data
-        else:
-            items = data["data"].get("items")
-            for item in items:
-                if item.get("market_hash_name")==market_hash_name:
-                    processed_data[market_hash_name] = {
-                        "lowest_price": item.get("sell_min_price",0),
-                        "median_price": item.get("quick_price",0),
-                        "volume": item.get("sell_num", 0)
-                    }
-            logger.info(f"Finish fetching {market_hash_name} from BUFF")
-            return processed_data, data
+        processed_data = {
+        market_hash_name: {
+            "lowest_price": None,
+            "median_price": None,
+            "volume": None
+        }
+    }
+
+    items = data.get("data", {}).get("items", [])
+
+    for item in items:
+        if item.get("market_hash_name") == market_hash_name:
+            processed_data[market_hash_name] = {
+                "lowest_price": item.get("sell_min_price"),
+                "median_price": item.get("quick_price"),
+                "volume": item.get("sell_num")
+            }
+            break
+
+    logger.info(f"Finish fetching {market_hash_name} from BUFF")
+
+    return processed_data, data
