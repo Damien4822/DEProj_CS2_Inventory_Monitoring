@@ -14,14 +14,21 @@ versions/v1_local/dags/__pycache__/*
 versions/v1_local/data/cookies/*.json
 versions/v1_local/output/
 versions/v1_local/output/*
+
 #Ignore local config of v2
 versions/v2_distributed/infra/.env
 versions/v2_distributed/worker/logs
 versions/v2_distributed/worker/logs/*
 versions/v2_distributed/simple_auth_manager_passwords.json.generated
 
-#Ignore local config of v2
+#Ignore local config of v3
 versions/v3_cloud_deploy/infra/.env
 versions/v3_cloud_deploy/worker/logs
 versions/v3_cloud_deploy/worker/logs/*
 versions/v3_cloud_deploy/simple_auth_manager_passwords.json.generated
+
+#Ignore local config of v4
+versions/v4_aws_native/infra/.env
+versions/v4_aws_native/worker/logs
+versions/v4_aws_native/worker/logs/*
+versions/v4_aws_native/simple_auth_manager_passwords.json.generated
