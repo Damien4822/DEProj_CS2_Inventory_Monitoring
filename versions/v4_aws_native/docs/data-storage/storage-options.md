@@ -339,15 +339,13 @@ This project does not implement a full medallion architecture because the main o
 Instead, the pipeline uses a simpler raw-to-structured approach:
 
 ```text
-Raw External Data
-(MongoDB)
-        |
-        |
 Worker Processing
         |
-        |
-Structured Application Data
-(PostgreSQL)
+        |---------------------
+        |                    |
+Raw External Data       Structured Application Data
+(MongoDB)                  (PostgreSQL)
+
 ```
 
 This design keeps the architecture simple while still providing the main benefits of separating raw responses from processed application data.
