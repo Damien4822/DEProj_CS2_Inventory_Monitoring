@@ -1,41 +1,45 @@
-# DRAFT: V4 – AWS-Native Distributed Pipeline
+# V4 – Distributed Data Engineering Platform
 
 ## Overview
 
-V4 represents the latest iteration of the distributed CS2 Inventory Monitoring pipeline. Building upon the cloud-distributed architecture introduced in V3, this version focuses on adopting AWS-managed infrastructure services and refining the system's data model to improve maintainability and support future development.
+V4 represents the current architectural direction of the distributed CS2 Inventory Monitoring platform.
 
-The overall processing workflow remains largely unchanged. Inventory data is collected from multiple external platforms, distributed across worker nodes for parallel processing, transformed into a normalized representation, and stored using dedicated persistence layers. Rather than introducing a new processing model, V4 focuses on improving the underlying infrastructure and data organization.
+Rather than introducing a completely new processing model, V4 focuses on refining the architecture established in V3 through clearer separation of responsibilities, improved documentation of design decisions, and evaluation of future Data Engineering concepts.
 
-The primary architectural changes in V4 include:
-- Migration from self-managed infrastructure services to AWS-managed services.
-- Redesign of the relational database schema to improve data organization.
-- Continued use of distributed, stateless worker nodes for parallel execution.
-- Preservation of the asynchronous message-driven processing model established in previous versions.
+The distributed processing model introduced in V3 remains the foundation of the platform. Inventory and marketplace data are collected from external sources, distributed across independent worker services for parallel processing, and persisted using dedicated storage systems. V4 builds upon this architecture by documenting the responsibilities of each architectural layer, identifying limitations observed during implementation, and exploring potential future improvements.
 
-The pipeline is designed to:
-- Extract inventory and market data from multiple external sources.
-- Distribute workloads across independent worker instances.
-- Process and normalize market data in parallel.
-- Store both structured and raw datasets using dedicated storage systems.
-- Evaluate distributed processing using AWS-native infrastructure.
->**Note**
->
->V4 retains the layered architectural layout introduced in V3 to maintain consistency throughout the project's evolution. Development of this version is still ongoing, and some implementation details are not yet documented. This README will be updated progressively as additional components and architectural decisions are finalized.`
 ---
 
-# Architecture Goals
-The V4 architecture is designed around the following objectives:
+## Project Status
 
-- Maintain a modular layered architecture.
-- Reduce infrastructure management through AWS-managed services.
--Preserve distributed worker execution.
-- Support independent horizontal scaling of worker nodes.
-- Improve data organization through a redesigned relational schema.
-- Provide a foundation for future cloud-native enhancements.
+During the development of V4, one of the project's primary data sources, **BUFF**, transitioned from publicly accessible marketplace APIs toward a platform-service model that requires authenticated access through subscription-based services.
 
-# System Architecture
+This change significantly affected the original development roadmap. Rather than continuing to expand features around an increasingly restricted data source, the project shifted its focus toward strengthening the underlying platform architecture.
 
+As a result, V4 emphasizes architectural refinement over feature expansion.
 
+The current implementation remains a functional distributed data collection platform, while the V4 documentation captures architectural discussions, design rationale, trade-offs, and future evolution based on lessons learned throughout previous iterations.
+
+---
+
+# Objectives
+
+V4 is designed around the following objectives:
+
+* Refine the layered architecture introduced in V3.
+* Clearly separate architectural responsibilities across system layers.
+* Document architectural decisions and their underlying rationale.
+* Preserve the distributed asynchronous processing model.
+* Improve maintainability through better storage organization and workflow separation.
+* Establish a foundation for future Data Engineering enhancements.
+
+---
+
+# Architecture
+
+The platform continues to follow a layered architecture.
+
+```text
 ```
 +----------------------+       +------------------------+
 |   Control Layer      |       |     Execution Layer     |
@@ -55,110 +59,82 @@ The V4 architecture is designed around the following objectives:
                   |   Storage    |   |             |   | Storage     |
                    +-------------+   +-------------+   +-------------+
 ```
+```
 
-## Airflow (Orchestration Layer)
+The major architectural areas include:
 
-Apache Airflow continues to serve as the workflow orchestration platform for the pipeline. Compared with V3, Airflow's responsibilities have been simplified to focus on workflow coordination rather than task execution.
+* **Orchestration** — Coordinates workflow execution, scheduling, retries, and task dependencies.
+* **Workers** — Execute distributed collection workloads independently.
+* **Data Storage** — Manages structured, raw, and temporary datasets using dedicated persistence technologies.
 
-### Responsibilities
-- Scheduling pipeline execution.
-- Generating inventory processing tasks.
-- Coordinating workflow dependencies.
-- Enqueuing processing jobs into the message queue.
-- Monitoring pipeline execution.
-
-### Architectural Changes
-
-In V3, Airflow workers executed browser automation tasks responsible for obtaining authentication cookies using the CeleryExecutor.
-
-In V4, login automation has been decoupled from Airflow and is executed as a dedicated service running on AWS ECS. Airflow now invokes this service as part of the workflow while remaining responsible only for orchestration.
-
-This separation reduces the workload performed by Airflow workers and better aligns Airflow with its intended role as a workflow orchestrator rather than an execution platform.
-
-## Workers (Execution Layer)
-Workers are stateless processing services responsible for executing inventory processing jobs independently of the orchestration layer.
-
-Responsibilities include:
-
-- Consuming jobs from the message queue.
-- Retrieving authentication data.
-- Fetching inventory and market data from external platforms.
-- Transforming and normalizing responses.
-- Persisting processed data through the persistence layer.
-
-### Batch Processing
-
-Workers continue to process inventory items in batches, allowing multiple items to be processed within a single execution cycle. This reduces queue communication overhead while maintaining parallel execution across multiple worker instances.
-
-Workers remain horizontally scalable and can be replicated independently to increase processing throughput.
-
-## Data Storage 
-
-V4 separates data storage responsibilities based on the type of data being managed.
-
-The pipeline uses different storage systems for:
-
-- Raw external responses.
-- Structured market data.
-- Temporary authentication state.
-
-### PostgreSQL (Structure storage)
-
-PostgreSQL stores processed and structured market data generated by worker services.
-
-Workers are responsible for:
-
-- Selecting required fields from external responses.
-- Transforming data into the application data model.
-- Inserting normalized records into PostgreSQL.
-
-Stored data includes:
-
-- Inventory items.
-- Market sources.
-- Price snapshots.
-
-The V4 schema redesign separates inventory entities, market sources, and market observations to improve maintainability and support future marketplace expansion.
-
-More details:
+Detailed discussions for each layer are available under the `docs/` directory.
 
 ```
-docs/data-storage/schema-changes.md
+docs/
+├── orchestration/
+├── workers/
+└── data-storage/
 ```
+
+Each document discusses:
+
+* Current approach
+* Design rationale
+* Known limitations
+* Alternative approaches
+* Future enhancements
 
 ---
 
-### MongoDB (Raw storage)
+# Distributed Processing Model
 
-MongoDB stores raw responses collected from external platforms.
+The processing workflow remains largely unchanged from V3.
 
-Raw responses are preserved for:
+The pipeline performs the following high-level operations:
 
-- Auditing.
-- Debugging.
-- Reprocessing.
-- Historical response storage.
+1. Schedule collection workflows.
+2. Generate collection tasks.
+3. Distribute workloads through the messaging layer.
+4. Execute collection using distributed worker instances.
+5. Process and normalize marketplace responses.
+6. Persist structured and raw datasets.
+7. Publish downstream events for additional processing.
 
-Workers store the original responses while also extracting the required fields for insertion into PostgreSQL.
-
----
-
-### Redis (Shared-state storage)
-
-Redis stores temporary authentication state shared between worker services.
-
-The login process generates authentication cookies, which are stored in Redis and retrieved by workers when making authenticated requests to external platforms.
-
-Redis is used because:
-
-- Multiple workers can share the same authentication state.
-- Data retrieval is fast.
-- Authentication data does not require permanent storage.
+This asynchronous processing model enables workers to execute independently while allowing the orchestration layer to focus solely on workflow coordination.
 
 ---
 
-For additional storage design discussions, including AWS migration considerations and alternative services, see:
+# Infrastructure
 
-```
-docs/data-storage/storage-options.md
-```
+V4 continues to evaluate cloud-native infrastructure where it provides clear operational benefits.
+
+Current architectural discussions include:
+
+* Dedicated orchestration through Apache Airflow.
+* Distributed worker execution.
+* Containerized authentication workflows using Amazon ECS.
+* Shared authentication state through Redis.
+* Asynchronous communication through RabbitMQ.
+* Hybrid persistence using PostgreSQL and MongoDB.
+
+These technologies are treated as implementations of architectural capabilities rather than architectural layers themselves.
+
+---
+
+# Documentation
+
+Beginning with V4, architectural knowledge is documented alongside the implementation.
+
+Rather than focusing solely on source code, the project also documents the reasoning behind architectural decisions, observed limitations, and future design considerations.
+
+The documentation should be viewed as a living architectural reference.
+
+Some discussions describe implemented functionality, while others intentionally explore future improvements that have not yet been selected or implemented.
+
+---
+
+# Current Status
+
+V4 represents the current architectural direction of the project.
+
+The distributed architecture established in V3 remains operational, while V4 focuses on refining its design, documenting architectural decisions, and preparing the platform for future evolution as a more complete Data Engineering system.
